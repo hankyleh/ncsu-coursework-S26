@@ -1,0 +1,13 @@
+# latex auxiliary files
+*.log
+*.out
+_minted/
+*.aux
+*.synctex.gz
+*.bbl
+*.blg
+*.dvi
+*.fls
+*.xdv
+*.fdb_latexmk
+venv/
