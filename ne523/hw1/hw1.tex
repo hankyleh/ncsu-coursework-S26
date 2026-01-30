@@ -6,6 +6,8 @@
 
 \usepackage{cancel}
 
+\renewcommand{\defeq}{\stackrel{\text{def}}{=}}
+
 
 
 
@@ -46,14 +48,140 @@ The collision integral can be found by computing the rate of scattering into or 
 
 
 
-% TODO
+% TODO : scattering rates of two species
 
 \section{Differential Volume Invariant}\label{sec:volume}
+
+
 
 % TODO
 
 
 \section{Maxwell-Boltzmann Moments}
+
+The distribution with arbitrary bulk velocity $\vec{v_0}$ is
+
+\begin{equation}
+    f_0(\vec{v}) = n{\left( \frac{m}{2\pi k T} \right)}^{3/2} \exp \left[ -\frac{m |\vec{v} - \vec{v_0}|^2}{2kT}\right].
+\end{equation}
+
+Let $\vec{w} \defeq \vec{v} - \vec{v_0}$. Then distribution in the transformed coordinate is 
+
+
+\begin{equation}
+    f_0(\vec{w} + \vec{v_0}) = n{\left( \frac{m}{2\pi k T} \right)}^{3/2} \exp \left[ -\frac{m |\vec{w}|^2}{2kT}\right].
+\end{equation}
+
+Then the transormation dissapears when integrating the zeroth moment, since the bounds of integration are infinite: $\int d^w f_0(\vec{w} + \vec{v_0}) = \int d^3 w f_0(\vec{w})$. Then the zeroth moment is
+
+\begin{equation}
+    \int d^3w f_0(\vec{w}) = \int d^3w f_0(\vec{w} + \vec{v_0}) = \int d^3w n{\left( \frac{m}{2\pi k T} \right)}^{3/2} \exp \left[ -\frac{m |\vec{w}|^2}{2kT}\right].
+\end{equation}
+
+Transforming to spherical coordinates, the differential volume element becomes $d^3w = w^2 \sin \theta d\theta d\phi dw$, where $0\leq \theta \leq \pi$ is the polar angle, $0\leq \phi \leq 2\pi$ is the azimuthal angle, and $0 \leq (w = |\vec{w}|) < \infty$ is the speed, and the zeroth moment is
+
+\begin{subequations}
+    \begin{align}
+    \int d^3w f_0(\vec{w})  &= \int_{0}^{\pi} \sin \theta d \theta \int_{0}^{2\pi} d\phi \int_{0}^{\infty}   n{\left( \frac{m}{2\pi k T} \right)}^{3/2} \exp \left[ -\frac{m w^2}{2kT}\right]w^2 dw\\
+        &= 4\pi n{\left( \frac{m}{2\pi k T} \right)}^{3/2}\int_{0}^{\infty}    \exp \left[ -\frac{m w^2}{2kT}\right]w^2 dw.
+\end{align}
+\end{subequations}
+
+With a change of variables $t = \frac{m w^2}{2kT}$, this becomes
+
+\begin{equation}
+    \int d^3w f_0(\vec{w}) = 4\pi n{\left( \frac{m}{2\pi k T} \right)}^{3/2}\int_{0}^{\infty} \frac{1}{2}  \left( \frac{2kT}{m} \right)^{3/2} t^{1/2}  \exp \left[ -t\right] dt.
+\end{equation}
+
+This integral can be evaluated using the gamma function $\Gamma(z) = \int_{0}^{\infty} t^{z-1}e^{-t}dt$, 
+
+\begin{align}
+    \int d^3w f_0(\vec{w}) &= 4\pi n{\left( \frac{m}{2\pi k T} \right)}^{3/2}\frac{1}{2}  \left( \frac{2kT}{m} \right)^{3/2} \Gamma\left( \frac{3}{2}\right)\\
+    &= 4\pi n{\left( \frac{m}{2\pi k T} \right)}^{3/2}\frac{1}{2}  \left( \frac{2kT}{m} \right)^{3/2} \frac{\sqrt{\pi}}{2},
+\end{align}
+
+so the zeroth moment is
+
+
+\begin{equation}
+    \boxed{\int d^3w f_0(\vec{w}) = n}.
+\end{equation}
+
+
+
+The first moment is
+
+\begin{multline}
+    \int d^3w (\vec{w} + \vec{v_0}) f_0(\vec{w} + \vec{v_0}) = \int d^3w \left(\vec{w} + \vec{v_0} \right) f_0 (\vec{w} + \vec{v_0}) \\
+    = \int d^3w \vec{w} f_0 (\vec{w} + \vec{v_0}) + \int d^3 w \vec{v_0} f_0 (\vec{w} + \vec{v_0}).
+\end{multline}
+
+The second part of this integral can be evaluated easily using the zeroth moment, since $\vec{v_0}$ does not depend on $\vec{w}$; $\int d^3 w \vec{v_0} f_0 (\vec{w} + \vec{v_0}) = \vec{v_0}n$. The first part of this integral evaluates to zero, since the bracketed term in 
+
+\begin{multline}
+    \int d^3w \vec{w} f_0 (\vec{w} + \vec{v_0})  \\
+    =  n{\left( \frac{m}{2\pi k T} \right)}^{3/2}\int_{0}^{\infty}    \exp \left( -\frac{m w^2}{2kT}\right)w^3 dw \left[\int_{0}^{\pi} \sin\theta d \theta \int_{0}^{2\pi}d \phi \hat{w}(\theta, \phi)\right],
+\end{multline}
+
+where $\hat{w}(\theta, \phi)$ is the unit vector that points in the direction $(\theta, \phi)$, is equal to zero due to spherical symmetry.
+
+Then the first moment is
+
+\begin{equation}
+    \boxed{\int d^3 v \vec{v}f_0(\vec{v}) = n\vec{v_0}}.
+\end{equation}
+
+The second moment is
+
+\begin{equation}
+    \int d^3 v \left(\frac{1}{2} mv^2 \right)    f_0(\vec{v}).
+\end{equation}
+
+Applying the same transformation $\vec{w} = \vec{v} - \vec{v_0}$, this can be written
+
+
+\begin{equation}
+  \int d^3 v \left(\frac{1}{2} mv^2 \right)    f_0(\vec{v})= n {\left( \frac{m}{2\pi k T} \right)}^{3/2}  \int d^3 w \left(\frac{1}{2}m |\vec{w} + \vec{v_0}|^2 \right) \exp \left[ \frac{-m w^2}{2kT} \right],
+\end{equation}
+
+where
+
+\begin{subequations}
+ \begin{align}
+    |\vec{w} + \vec{v_0}|^2 &= {\left(w_x + v_{0,x} \right)}^2 + {\left(w_y + v_{0,y} \right)}^2 + {\left(w_z, v_{0, z} \right)}^2\\
+    &=\left(w_x^2 + 2w_x v_{0, x} + v_{0, x}^2\right) + \left(w_y^2 + 2w_y v_{0, y} + v_{0, y}^2\right) + \left(u_z^2 + 2u_z v_{0, z} + v_{0, z}^2\right)
+\end{align}   
+\end{subequations}
+
+Then, translating to spherical coordinates, this becomes
+
+\begin{multline}
+    |\vec{w} + \vec{v_0}|^2 =\left(w_x^2 + 2\sin\theta\cos\phi \cdot w v_{0, x} + v_{0, x}^2\right)\\
+     + \left(w_y^2 + 2 \sin\theta\sin\phi \cdot w v_{0, y} + v_{0, y}^2\right)\\
+      + \left(u_z^2 + 2 \cos\phi \cdot wv_{0, z} + v_{0, z}^2\right).
+\end{multline}
+
+Then, rewriting the integral in spherical coordinates yields
+
+\begin{multline}
+    n {\left( \frac{m}{2\pi k T} \right)}^{3/2}  \left[\int_{0}^{\pi} \sin \theta  d\theta \int_{0}^{2\pi} d \phi \int_{0}^{\infty} dw \left(\frac{1}{2}m w^4 \right) \exp \left( \frac{-m w^2}{2kT} \right) \right. \\
+    +\int_{0}^{\pi}  d\theta \int_{0}^{2\pi} d \phi \int_{0}^{\infty} dw\left(m \left(\sin^2\theta \cos \phi v_{0, x} + \sin^2\theta \sin\phi v_{0, y} + \sin\theta \cos\phi v_{0, z} \right)w^3 \right) \exp \left( \frac{-m w^2}{2kT} \right)   \\
+    \left.+\frac{1}{2}m v_0^2 \int_{0}^{\pi} \sin\theta d\theta \int_{0}^{2\pi} d \phi \int_{0}^{\infty}dw \left( w^2 \right) \exp \left( \frac{-m w^2}{2kT} \right)  \right].
+\end{multline}
+
+The second line of the bracketed term evaluates to zero since $\int_{0}^{2\pi} \sin \phi d \phi = \int_{0}^{2\pi}\cos \phi d \phi = 0$. With the change of variables $t = \frac{mw^2}{2kT}$, this equation becomes
+
+\begin{subequations}
+    \begin{multline}
+        n {\left( \frac{m}{2\pi k T} \right)}^{3/2} \cdot 4\pi \left[\int_{0}^{\infty} \frac{1}{2}m\left(\frac{2kTt}{m} \right)^2 \exp(-t) \cdot \frac{1}{2} \left( \frac{2kT}{m}\right)^{1/2} t^{1/2}dt \right. \\
+        + \frac{1}{2}m v_0^2\int_{0}^{\infty} \frac{1}{2}m\left(\frac{2kTt}{m} \right) \exp(-t) \cdot \frac{1}{2} \left( \frac{2kT}{m}\right)^{1/2} t^{1/2}dt
+\end{multline}
+
+%TODO-- THIS INTEGRAL IS WRONG
+
+\end{subequations}
+
+
 
 % TODO  
 
