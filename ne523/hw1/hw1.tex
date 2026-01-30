@@ -1,0 +1,61 @@
+\documentclass{hw-template}
+
+\title{NE523 Homework 1}
+\author{Kyle Hansen}
+\date{2 February 2026}
+
+\usepackage{cancel}
+
+
+
+
+\begin{document}
+
+\maketitle{}
+
+\section{Two-species Boltzmann Equation}
+
+The Boltzmann equation can be derived by computing the transformation that a small element in phase space sees in a short time $\delta t$. From \autoref{sec:volume}, in the absence of collisions and considering only first-order $\delta t$ terms, the particles at $(\vec{r}, \vec{v})$ will stream to {$\left(\vec{r} + \vec{v}\delta t, \vec{v} + \frac{\vec{F}|_{t=t_0}}{m} \delta t, t_0 + \delta t\right)$} after a short time $\delta t$, or 
+
+\begin{equation}
+    f\left(\vec{r} + \vec{v}\delta t, \vec{v} + \frac{\vec{F}|_{t=t_0}}{m} \delta t, t_0 + \delta t\right)= f\left(\vec{r}, \vec{v}, t_0 \right).
+\end{equation}
+
+Note that $\delta t$ must be small enough to neglect the higher-order terms. The effect of scattering can be denoted with $\left( \frac{\partial f}{\partial t}\right)_{coll}$, the net change in $f$ over time due to scattering (into and out of $(\vec{r}, \vec{v})$). Then in time $\delta t$ the total change in $f$ is $\left( \frac{\partial f}{\partial t}\right)_{coll} \delta t$, and
+
+\begin{equation}
+    f\left(\vec{r} + \vec{v}\delta t, \vec{v} + \frac{\vec{F}|_{t=t_0}}{m} \delta t, t_0 + \delta t\right)= f\left(\vec{r}, \vec{v}, t_0 \right) + \left( \frac{\partial f}{\partial t}\right)_{coll}\delta t.
+\end{equation}
+
+Expanding the left-hand side as a Taylor series in $t$, this becomes
+
+\begin{gather}
+    \cancel{f\left(\vec{r}, \vec{v}, t \right)} + \left(\nabla_r f \cdot \vec{v} \right)\delta t + \left(\nabla_v f \cdot \frac{\vec{F}}{m} \right)\delta t + \left(\frac{\partial f}{\partial t} \right)\delta t= \cancel{f\left(\vec{r}, \vec{v}, t \right)} + \left( \frac{\partial f}{\partial t}\right)_{coll} \delta t\\
+    \left(\vec{v} \nabla_r + \frac{\vec{F}}{m} \nabla_v  +\frac{\partial}{\partial t} \right)f\left(\vec{r}, \vec{v}, t \right)\delta t=  \left( \frac{\partial f}{\partial t}\right)_{coll} \delta t\\
+    \left(\vec{v} \nabla_r + \frac{\vec{F}}{m} \nabla_v  +\frac{\partial}{\partial t} \right)f\left(\vec{r}, \vec{v}, t \right)=  \left( \frac{\partial f}{\partial t}\right)_{coll}.
+\end{gather}
+
+The same applies for particles of species $g$, so 
+
+\begin{align}
+    \left(\vec{v} \nabla_r + \frac{\vec{F}}{m} \nabla_v  +\frac{\partial}{\partial t} \right)f\left(\vec{r}, \vec{v}, t \right)&=  \left( \frac{\partial f}{\partial t}\right)_{coll}\\
+    \left(\vec{v} \nabla_r + \frac{\vec{G}}{m} \nabla_v  +\frac{\partial}{\partial t} \right)g\left(\vec{r}, \vec{v}, t \right)&=  \left( \frac{\partial g}{\partial t}\right)_{coll}.
+\end{align}
+
+The collision integral can be found by computing the rate of scattering into or out of $(\vec{r}, \vec{v})$ due to collisions of particles of both species.
+
+
+
+% TODO
+
+\section{Differential Volume Invariant}\label{sec:volume}
+
+% TODO
+
+
+\section{Maxwell-Boltzmann Moments}
+
+% TODO  
+
+
+\end{document}
