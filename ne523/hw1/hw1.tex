@@ -44,8 +44,77 @@ The same applies for particles of species $g$, so
     \left(\vec{v} \nabla_r + \frac{\vec{G}}{m} \nabla_v  +\frac{\partial}{\partial t} \right)g\left(\vec{r}, \vec{v}, t \right)&=  \left( \frac{\partial g}{\partial t}\right)_{coll}.
 \end{align}
 
-The collision integral can be found by computing the rate of scattering into or out of $(\vec{r}, \vec{v})$ due to collisions of particles of both species.
+The collision integral can be found by computing the rate of scattering into or out of $(\vec{r}, \vec{v})$ due to collisions of particles of both species, 
 
+\begin{equation}
+    \left( \frac{\partial f}{\partial t}\right)_{coll} = \sum_{i= f, g} R_{gain, f, i} - R_{loss, f, i}.
+\end{equation}
+
+The rate of collisions with a beam of species $i$ and velocity $\vec{v_i}$, which cause an $f$-particle of velocity $\vec{v}$ to scatter to velocity $\vec{v}^\prime$, is given by
+
+\begin{equation}
+    I_i \sigma_{f, i}(\vec{r}, \vec{v_i}, \vec{v} \rightarrow \vec{v_i}^\prime, \vec{v}^\prime),
+\end{equation}
+
+or, equivalently, with a change in notation,
+
+\begin{equation}
+    I_i \sigma_{f, i}(\vec{r}, \vec{v_i}^\prime, \vec{v}^\prime \rightarrow \vec{v_i}, \vec{v}),
+\end{equation}
+
+where $\sigma_{f, i}$ is the equivalent cross-sectional area (accounting for quantum effects) of a collision between an $f$-particle and $i$-particle (where $i = f, g$). Then the total rate (rate-density times density of $f$-particles) of these collisions its
+
+\begin{equation}
+    f(\vec{r}, \vec{v}, t) I_i \sigma_{f, i}(\vec{r}, \vec{v_i}, \vec{v} \rightarrow \vec{v_i}^\prime, \vec{v}^\prime),
+\end{equation}
+
+or
+
+\begin{equation}
+    f(\vec{r}, \vec{v}^\prime, t)I_i \sigma_{f, i}(\vec{r}, \vec{v_i}^\prime, \vec{v}^\prime \rightarrow \vec{v_i}, \vec{v}).
+\end{equation}
+
+The intensity of a particle beam is density times its speed (relative to the target, in this case the $f$-particle), or
+
+\begin{equation}
+    I_i(\vec{r}, \vec{v}_i, t) = i(\vec{r}, \vec{v}_i, t) |\vec{v}_i - \vec{v}|
+\end{equation}
+
+then the total rate of collisions with $i$-particles of velocity $\vec{v}_i$ which cause an $f$-particle of velocity $\vec{v}$ to scatter to $\vec{v}^\prime$ is
+
+\begin{equation}
+    f(\vec{r}, \vec{v}, t)i(\vec{r}, \vec{v}_i, t) |\vec{v}_i - \vec{v}|\sigma_{f, i}(\vec{r}, \vec{v_i}, \vec{v} \rightarrow \vec{v_i}^\prime, \vec{v}^\prime).
+\end{equation}
+
+The total removal rate is this function, integrated over all $\vec{v}^\prime, \vec{v}_i, \vec{v}_i^\prime$, since a collision with any result, and with an $i$-particle of any energy will cause particle removal. So,
+
+\begin{align}
+    R_{loss, f, f} &= \int d^3 v^\prime \int d^3 v_f \int d^3 v_f^\prime \; f(\vec{r}, \vec{v}, t)f(\vec{r}, \vec{v}_f, t) |\vec{v}_f - \vec{v}|\sigma_{f, f}(\vec{r}, \vec{v_f}, \vec{v} \rightarrow \vec{v_f}^\prime, \vec{v}^\prime)\\
+    R_{loss, f, g} &= \int d^3 v^\prime \int d^3 v_g \int d^3 v_g^\prime \; f(\vec{r}, \vec{v}, t)g(\vec{r}, \vec{v}_g, t) |\vec{v}_g - \vec{v}|\sigma_{f, g}(\vec{r}, \vec{v_g}, \vec{v} \rightarrow \vec{v_g}^\prime, \vec{v}^\prime),
+\end{align}
+
+with similar rates for $g$. The gain rate is similarly found by integrating over all initial particle velocities $\vec{v}^\prime, \vec{v}_i^\prime$ and all resulting $\vec{v}_i$, since a collision at any velocity, with a second particle of any velocity may lead lead to scattering to $\vec{v}$. So,
+
+\begin{align}
+    R_{gain, f, f} &= \int d^3 v^\prime  \int d^3 v_f^\prime \int d^3  v_f\; f(\vec{r}, \vec{v}, t) f(\vec{r}, \vec{v}_f, t) |\vec{v}_f - \vec{v}|\sigma_{f, f}(\vec{r}, \vec{v_f}^\prime, \vec{v}^\prime \rightarrow \vec{v_f}, \vec{v})\\
+    R_{gain, f, g} &= \int d^3 v^\prime  \int d^3 v_f^\prime \int d^3 \; v_f f(\vec{r}, \vec{v}, t) g(\vec{r}, \vec{v}_g, t) |\vec{v}_g - \vec{v}|\sigma_{f, g}(\vec{r}, \vec{v_g}^\prime, \vec{v}^\prime \rightarrow \vec{v_g}, \vec{v})
+\end{align}
+
+with similar rates for $g$. Then the system that describes the population is
+
+
+\begin{multline}
+    \left(\vec{v} \nabla_r + \frac{\vec{F}}{m} \nabla_v  +\frac{\partial}{\partial t} \right)f\left(\vec{r}, \vec{v}, t \right) \\
+    = \sum_{i=f, g}\int d^3 v^\prime  \int d^3 v_i^\prime \int d^3 \; v_i f(\vec{r}, \vec{v}, t) i(\vec{r}, \vec{v}_i, t) |\vec{v}_i - \vec{v}|\sigma_{f, i}(\vec{r}, \vec{v_i}^\prime, \vec{v}^\prime \rightarrow \vec{v_f}, \vec{v})\\
+    - \sum_{i=f, g}\int d^3 v^\prime \int d^3 v_i \int d^3 v_f^\prime \; f(\vec{r}, \vec{v}, t)i(\vec{r}, \vec{v}_i, t) |\vec{v}_i - \vec{v}|\sigma_{f, i}(\vec{r}, \vec{v_i}, \vec{v} \rightarrow \vec{v_i}^\prime, \vec{v}^\prime)
+\end{multline}
+
+
+\begin{multline}
+    \left(\vec{v} \nabla_r + \frac{\vec{G}}{m} \nabla_v  +\frac{\partial}{\partial t} \right)g\left(\vec{r}, \vec{v}, t \right)\\
+    =\sum_{i=f, g}\int d^3 v^\prime  \int d^3 v_i^\prime \int d^3  v_i \;g(\vec{r}, \vec{v}, t) i(\vec{r}, \vec{v}_i, t) |\vec{v}_i - \vec{v}|\sigma_{g, i}(\vec{r}, \vec{v_i}^\prime, \vec{v}^\prime \rightarrow \vec{v_i}, \vec{v})\\
+    - \sum_{i=f, g}\int d^3 v^\prime \int d^3 v_i \int d^3 v_i^\prime \; g(\vec{r}, \vec{v}, t)i(\vec{r}, \vec{v}_i, t) |\vec{v}_i - \vec{v}|\sigma_{g, i}(\vec{r}, \vec{v_i}, \vec{v} \rightarrow \vec{v_i}^\prime, \vec{v}^\prime)
+\end{multline}
 
 
 % TODO : scattering rates of two species
@@ -53,6 +122,12 @@ The collision integral can be found by computing the rate of scattering into or 
 \section{Differential Volume Invariant}\label{sec:volume}
 
 By Cavalieri's principle, two objects with the same height and constant cross-sectional area have the same volume (see \autoref{fig:cavalieri} for illustration). Generalized to higher dimensions, if two $n$-dimensional volumes have the same height (for example, length when projected onto the $v_x$ axis) and cross-sectional volume across the other $(n-1)$ dimensions, then those two volumes are equal.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.45\linewidth]{image.png}
+    \caption{Cavalieri's principle [Wikipedia]}\label{fig:cavalieri}
+\end{figure}
 
 Consider the 6-dimensional prism confined by opposing corners $(x_0, y_0, z_0, v_{0, x}, v_{0, y}, v_{0, z})$ and $((x_0+\Delta x), \dots, {(v_{0, x}+\Delta v_x)}, \dots)$ and its change in time $\Delta t$. The Taylor series about $t_0$ for a particle's position and velocity are given by
 
@@ -97,11 +172,7 @@ Since $x$ and $v_x$ do not depend on the $y$ and $z$ terms, the area of the $x$-
 
 
 
-\begin{figure}
-    \centering
-    \includegraphics[width=0.45\linewidth]{image.png}
-    \caption{Cavalieri's principle [Wikipedia]}\label{fig:cavalieri}
-\end{figure}
+
 
 % TODO
 
