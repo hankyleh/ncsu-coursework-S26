@@ -52,7 +52,56 @@ The collision integral can be found by computing the rate of scattering into or 
 
 \section{Differential Volume Invariant}\label{sec:volume}
 
+By Cavalieri's principle, two objects with the same height and constant cross-sectional area have the same volume (see \autoref{fig:cavalieri} for illustration). Generalized to higher dimensions, if two $n$-dimensional volumes have the same height (for example, length when projected onto the $v_x$ axis) and cross-sectional volume across the other $(n-1)$ dimensions, then those two volumes are equal.
 
+Consider the 6-dimensional prism confined by opposing corners $(x_0, y_0, z_0, v_{0, x}, v_{0, y}, v_{0, z})$ and $((x_0+\Delta x), \dots, {(v_{0, x}+\Delta v_x)}, \dots)$ and its change in time $\Delta t$. The Taylor series about $t_0$ for a particle's position and velocity are given by
+
+\begin{subequations}
+    \begin{align}
+    x(t) &= x_0 + \frac{\partial x}{\partial t} (\Delta t) + \frac{\partial^2 x}{\partial t^2}(\Delta t)^2 + \mathcal{O}(\Delta t ^3)\\
+    y(t) &= \cdots\\
+    z(t) &= \cdots\\
+    v_x(t) &= v_{0, x} + \frac{\partial v_x}{\partial t} (\Delta t) + \frac{\partial^2 v_x}{\partial t^2}(\Delta t)^2 + \mathcal{O}(\Delta t ^3)\\
+    v_y(t) &= \cdots\\
+    v_z(t) &= \cdots
+\end{align}
+\end{subequations}
+
+Ignoring second order terms in $\Delta t$, and using $\frac{\partial x}{\partial t} = v_x$ and $\frac{\partial v_x}{\partial t} = \frac{F_x}{m}$, this becomes
+
+\begin{subequations}
+    \begin{align}
+    x(t) &= x_0 + v_x (\Delta t)\\
+    y(t) &= \cdots\\
+    z(t) &= \cdots\\
+    v_x(t) &= v_{0, x} + \frac{F_x}{m} (\Delta t) \\
+    v_y(t) &= \cdots\\
+    v_z(t) &= \cdots
+\end{align}
+\end{subequations}
+
+Then, consider the projection of the volumes (at $t_0$ and $t_0 + \Delta t$) onto the $x$-$v_x$ plane, with corners $\{(x_1, v_{x, 1}), (x_2, v_{x, 2}), (x_3, v_{x, 3}),(x_4, v_{x, 4})\}$ (the ``differential'' area at $t_0$) and the area $\{(x_1^\prime, v_{x, 1}^\prime), (x_2^\prime, v_{x, 2}^\prime), (x_3^\prime, v_{x, 3}^\prime),(x_4^\prime, v_{x, 4}^\prime)\}$ (the ``differential'' area at $t_0 + \Delta t$), as shown in \autoref{fig:volume}.
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.65\textwidth]{handdrawn.png}
+    \caption{Projected differential volume transformation}\label{fig:volume}
+\end{figure}
+
+Corners 1 and 2 see the same $x$-transformation of $v_0 \Delta t$, and corners 3 and 4 undergo the same $x$-transformation of $(v_{0, x} + \Delta v_x)\Delta t$. Likewise, corners 1 and 4 undergo the same $v_x$-transformation of $\frac{F_x(x_0)}{m}\Delta t$ and corners 2 and 3 undergo the same $v_x$-transformation of $\frac{F_x(x_0 + \Delta x)}{m}\Delta t$. Then the transformed shape is a parallelogram with base $\Delta x$ and height $\Delta v_x$, the same as the original shape; the two shapes have the same area. The same applies for the projections onto $y$-$v_y$ and $z$-$v_z$.
+
+
+
+Since $x$ and $v_x$ do not depend on the $y$ and $z$ terms, the area of the $x$-$v_x$ plane is constant for any $(y, z, v_y, v_z)$, so by Cavilieri's principle the volume can be determined by calculating $A_{x, v_x}\cdot V{y, z, v_y, v_z}$. Applying this again to the $(y, v_y)$ plane, the volume can be determined by calculating $A_{x, v_x}A_{y, v_y}A_{z, v_z}$-- since each of these areas remain constant after $\Delta t$, the total 6-dimensional volume of the shape remains the same.
+
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.45\linewidth]{image.png}
+    \caption{Cavalieri's principle [Wikipedia]}\label{fig:cavalieri}
+\end{figure}
 
 % TODO
 
@@ -169,21 +218,42 @@ Then, rewriting the integral in spherical coordinates yields
     \left.+\frac{1}{2}m v_0^2 \int_{0}^{\pi} \sin\theta d\theta \int_{0}^{2\pi} d \phi \int_{0}^{\infty}dw \left( w^2 \right) \exp \left( \frac{-m w^2}{2kT} \right)  \right].
 \end{multline}
 
-The second line of the bracketed term evaluates to zero since $\int_{0}^{2\pi} \sin \phi d \phi = \int_{0}^{2\pi}\cos \phi d \phi = 0$. With the change of variables $t = \frac{mw^2}{2kT}$, this equation becomes
+The second line of the bracketed term evaluates to zero since $\int_{0}^{2\pi} \sin \phi d \phi = \int_{0}^{2\pi}\cos \phi d \phi = 0$, so this equation becomes
+
+
+\begin{equation}
+    \frac{1}{2}m\cdot n \left( \frac{m}{2\pi k T}\right)^{3/2} \cdot 4\pi \int_{0}^{\infty}dw \left(v_0^2w^2 + w^4 \right) \exp \left(- \frac{mw^2}{2kT} \right).
+\end{equation}
+
+With the change of variables $t = \frac{mw^2}{2kT}$, this becomes
 
 \begin{subequations}
-    \begin{multline}
-        n {\left( \frac{m}{2\pi k T} \right)}^{3/2} \cdot 4\pi \left[\int_{0}^{\infty} \frac{1}{2}m\left(\frac{2kTt}{m} \right)^2 \exp(-t) \cdot \frac{1}{2} \left( \frac{2kT}{m}\right)^{1/2} t^{1/2}dt \right. \\
-        + \frac{1}{2}m v_0^2\int_{0}^{\infty} \frac{1}{2}m\left(\frac{2kTt}{m} \right) \exp(-t) \cdot \frac{1}{2} \left( \frac{2kT}{m}\right)^{1/2} t^{1/2}dt
-\end{multline}
+    \begin{equation}
+        4\pi \frac{1}{2} m \cdot n \left(\frac{m}{2\pi kT} \right)^{3/2} \int_{0}^{\infty}dt \; \frac{1}{2} \left(\frac{2kT}{m} \right)^{1/2} t^{-1/2} \left[\left(\frac{2kT}{m} \right)^2 t^2 + v_0^2 \frac{2kT}{m}t \right]\exp(-t)
+    \end{equation}
 
-%TODO-- THIS INTEGRAL IS WRONG
+    \begin{equation}
+        4\pi (\pi)^{-3/2} \frac{1}{4} m \cdot n \left(\frac{m}{2 kT} \right) \int_{0}^{\infty}dt \;  \left[\left(\frac{2kT}{m} \right)^2 t^{3/2} + v_0^2 \frac{2kT}{m}t^{1/2} \right]\exp(-t)
+    \end{equation}
 
+    \begin{equation}
+         \frac{1}{\sqrt{\pi}} m \cdot n  \int_{0}^{\infty}dt \;  \left[\left(\frac{2kT}{m} \right) t^{3/2} + v_0^2 t^{1/2} \right]\exp(-t)
+    \end{equation}
+
+    \begin{equation}
+        \frac{mn}{\sqrt{\pi}} \left[ \frac{2kT}{m} \Gamma\left( \frac{5}{2} \right)  + v_0^2 \Gamma \left( \frac{3}{2} \right)  \right]
+    \end{equation}
+
+    \begin{equation}
+        \frac{mn}{\sqrt{\pi}} \left[ \frac{2kT}{m} \left( \frac{3 \sqrt{\pi}}{4} \right)  + v_0^2 \left( \frac{\sqrt{\pi}}{2} \right)  \right],
+    \end{equation}
 \end{subequations}
 
+so the second moment is
 
-
-% TODO  
+\begin{equation}
+    \int d^3 v \left(\frac{1}{2} mv^2 \right)    f_0(\vec{v}) = n \left(\frac{3}{2} kT + \frac{1}{2}m v_0^2 \right).
+\end{equation}
 
 
 \end{document}
