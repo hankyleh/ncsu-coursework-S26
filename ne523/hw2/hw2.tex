@@ -210,7 +210,13 @@ Then, for $f(x) = 3x+7$,
 \end{equation}
 
 
-% TODO plots
+Because the original function is a polynomial with degree less than two, the truncated Legendre expansion is equal to the original funciton, as seen in \autoref{fig:parta}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.65\linewidth]{parta.png}
+    \caption{Function and approximation, Part a}\label{fig:parta}
+\end{figure}
 
 
 \subsection{}
@@ -229,8 +235,8 @@ For the function $f(x) = e^x$,
     \begin{aligned}
         f_1 &= \sqrt{\frac{3}{2}} \int\limits_{-1}^{1} xe^x dx\\
         &= \sqrt{\frac{3}{2}} \left[\left.xe^x \right\vert_{-1}^{1} - \int\limits_{-1}^{1} e^x dx \right]\\
-        &= \sqrt{\frac{3}{2}} \left[ e^1 - \left(e^1 - e^{-1} \right) \right]\\
-        f_1&= \sqrt{\frac{3}{2}} e^{-1}\\
+        &= \sqrt{\frac{3}{2}} \left[ \left(e^1 + e^{-1} \right) - \left(e^1 - e^{-1} \right) \right]\\
+        f_1&= \sqrt{6} e^{-1}\\
     \end{aligned}
 \end{equation}
 
@@ -247,7 +253,13 @@ For the function $f(x) = e^x$,
 \end{equation}
 
 
-% TODO plots
+Though the function is exponential, the truncated Legendre approximation is still close with only three moments used, as seen in \autoref{fig:partb}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.65\linewidth]{partb.png}
+    \caption{Function and approximation, Part b}\label{fig:partb}
+\end{figure}
 
 \subsection{}
 
@@ -262,10 +274,39 @@ For the function $f(x) = e^{5x}$,
     \end{aligned}
 \end{equation}
 
+\begin{equation}
+    \begin{aligned}
+        f_1 &= \sqrt{\frac{3}{2}} \int\limits_{-1}^{1}xe^{5x}dx\\
+        &= \sqrt{\frac{3}{2}} \left[  \left.  \frac{1}{5} xe^{5x}\right\vert_{-1}^{1}   - \int\limits_{-1}^{1}\frac{1}{5}e^{5x}dx\right]\\
+        &= \sqrt{\frac{3}{2}} \left[ \frac{1}{5}xe^{5x} - \frac{1}{25}e^{5x} \right]_{-1}^{1}\\
+        &= \frac{1}{5}\sqrt{\frac{3}{2}} \left[ \left( e^5 - \frac{1}{5}e^{-5}\right) - \left( -e^5 - \frac{1}{5}e^{-5}\right)\right]\\
+        f_1&= \frac{1}{25}\sqrt{\frac{3}{2}} \left[ 4 e^5 + 6e^{-5}\right]
+    \end{aligned}
+\end{equation}
+
+\begin{equation}
+    \begin{aligned}
+        f_2 &= \frac{1}{2}\sqrt{\frac{5}{2}}  \int\limits_{-1}^{1} e^{5x} \left(3x^2 - 1 \right)dx\\
+        &= \frac{1}{2} \sqrt{\frac{5}{2}} \left[\int\limits_{-1}^{1} 3x^2 e^{5x} dx - \int\limits_{-1}^{1} e^{5x} dx \right]\\
+        &= \frac{1}{2}\sqrt{\frac{5}{2}}  \left[\left. \frac{3}{5}x^2 e^{5x}\right\vert_{-1}^{1} - \int\limits_{-1}^{1} \frac{6}{5}x e^{5x} dx - \left. \frac{1}{5}e^{5x}\right\vert_{-1}^{1} \right]\\
+        &= \frac{1}{2} \sqrt{\frac{5}{2}} \left[ \left(\frac{3}{5}x^2 e^{5x}- \frac{6}{25}xe^{5x} -\frac{1}{5}e^{5x}  \right)_{-1}^1 + \int\limits_{-1}^{1} \frac{6}{25}e^{5x}dx \right]\\
+        &= \frac{1}{2}\sqrt{\frac{5}{2}}  \left[ \frac{3}{5}x^2 e^{5x}- \frac{6}{25}xe^{5x} -\frac{1}{5}e^{5x}  + \frac{6}{125}e^{5x} \right]_{-1}^1\\
+        &= \frac{1}{2}\sqrt{\frac{5}{2}}  \left[ \left(\frac{75}{125}x^2 -  \frac{30}{125}x +  \frac{19}{125} \right) e^{5x}\right]_{-1}^1\\
+        &= \frac{1}{250}\sqrt{\frac{5}{2}}  \left[ \left(75x^2 -  30x +  19 \right) e^{5x}\right]_{-1}^1\\
+        &= \frac{1}{250}\sqrt{\frac{5}{2}}  \left[ \left(75-30-19 \right)e^{5} - \left(75+30-19 \right)e^{-5}\right]\\
+        f_2 &= \frac{1}{250}\sqrt{\frac{5}{2}}  \left[ 26e^{5} - 86e^{-5}\right]\\
+    \end{aligned}
+\end{equation}
 
 
-% TODO equations
-% TODO plots
+Because of the rapid growth of $e^{5x}$, this function is poorly approximated with polynomials, as seen in \autoref{fig:partc}.
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.65\linewidth]{partc.png}
+    \caption{Function and approximation, Part c}\label{fig:partc}
+\end{figure}
 
 
 
