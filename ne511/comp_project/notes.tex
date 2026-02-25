@@ -1,0 +1,49 @@
+\documentclass{notes-template}
+
+\title{Notes, NE 511 Course Computer Project}
+\author{Kyle Hansen}
+\date{\today}
+
+
+
+\begin{document}
+\maketitle
+
+\section{NILO-CMFD Algorithm}
+
+The Nonlinearly Implicit Low-Order Coarse Mesh Finite Difference (NILO-CMFD) algorithm \cite{adamowicz2023nilo} is a method for coupling the neutron transport equation to Thermal Hydraulics (TH). It is expected to converge at a rate similar to transport problems without multiphysics (TH) coupling.
+
+The traditional CMFD algorithm for multiphysics problems involves a series of outer iterations, in which the neutron transport equation is solved for fission power, which is used to calculate temperature using TH models, then temperature-dependent cross sections are updated for the next outer iteration. Each outer iteration (index $n+1$) involves:
+
+\begin{enumerate}
+    \item Solve the high-order transport equation for $\phi^{(n+1/2)}, J^{(n+1/2)}$, use to compute $\hat{D}^{(n+1/2)}$
+    \item Perform a low-order (CMFD) diffusion sweep using \textit{explicit} cross sections ( $\sigma_i^{(n)}$ calculated at previous iteration) to further converge solution of $\phi^{(n)}$. Compute fission power $w_f\sigma_f\phi(\vec{r})$
+    \item Perform TH calculation using fission power to compute $T^{(n+1)}$
+    \item Compute $\sigma_i(T)$ to use for next iteration.
+\end{enumerate}
+
+The algorithm is slow to converge, since explicit cross sections are used. The algorithm may be unstable, so may not converge at all, but can be stabilized through relaxation, which further slows convergence. This method is called Relaxed CMFD (R-CMFD).
+
+This method can be stabilized by performing the low-order sweep using implicit cross sections, forming a nonlinearly coupled system with the low-order CMFD equations, TH calculations, and temperature-dependent cross sections. This method is known as X-CMFD. This system minimizes the number of outer iterations required, since the spectral radius of this iteration is about $\rho=0.22$, the same value as for single-physics transport. However, the method requires inversion of the TH operator, an expensive operation.
+
+The cost incurred by inverting $\mathcal{L}$ (the TH operator) can be avoided by using an approximation: the DSA sweep is performed using $\tilde{\sigma}_i$, an approximation of the implicit $\sigma_i(T^{(n+1)})$ which uses $L \approx \mathcal{L}$ and a first-order Taylor expansion of the $\sigma$ temperature dependence. This is the basis of NILO-CMFD.
+
+Each outer iteration of NILO-CMFD is:
+
+\begin{enumerate}
+    \item Transport sweep to determine $\hat{D}$
+    \item Low-order diffusion calculation using approximate implicit $\tilde{\sigma}_i(T)$, to determine fission power $w_f\tilde{\sigma}_f\phi(x)$
+    \item TH calculation $\mathcal{L}T(x) = w_f\tilde{\sigma}_f\phi(x)$ to compute $T$
+    \item Evaluate $\sigma_i^{(n+1)}$.
+\end{enumerate}
+
+
+
+
+
+
+\bibliographystyle{ieeetr}
+\bibliography{references.bib}
+
+
+\end{document}
