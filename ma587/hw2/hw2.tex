@@ -1,0 +1,113 @@
+\documentclass{hw-template}
+\usepackage{cancel}
+
+\title{MA 587 Homework 2}
+\author{Kyle Hansen}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Error bound}
+
+\subsection{} Consider a single cell of the problem domain, $L_j = [x_{j-1}, x_j]$, and choose some $z \in (x_{j-1}, x_j)$. The quadratic polynomial that interpolates the points $\{u(x_{j-1}), u(z), u(x_{j})\}$ is given by
+
+\begin{equation} \label{eq:quadratic}
+    \hat{u}_z(x) = u_{j-1} + \frac{u_j - u_{j-1}}{h}x + A_z(x-x_j)(x-x_{j-1}),
+\end{equation}
+
+where $A_z$ is some constant dependent on the choice of $z$, $u_j = u(x_j)$, and $h = x_j - x_{j-1}$. This can also be rewritten as 
+
+\begin{equation}
+    \hat{u}_z(x) = \tilde{u}(x) + A_z(x-x_j)(x-x_{j-1}),
+\end{equation}
+
+where $\tilde{u}$ is the linear interpolation of $u$. Then the error $g(x) = \hat{u}(x) - u(x)$ is zero in at least three points: $g(x_{j-1}) = g(z) = g(x_j) = 0$. By Rolle's theorem, since $g$ has three zeros, there are two points $\xi_{1, z} \in (x_{j-1}, z)$ and $\xi_{2, z} \in (z, x_j)$, for which $g^\prime(\xi_{1, z}) = g^\prime(\xi_{2, z}) = 0$. Applying Rolle's theorem once more, there is another point $\xi_{z} \in (\xi_{1, z}, \xi_{2, z})$ such that $g^{\prime\prime}(\xi_z) = 0$. That is, 
+
+\begin{equation}
+    g^{\prime\prime}(\xi_z) = \hat{u}^{\prime\prime}(\xi_z) - u^{\prime\prime}(\xi_z), 
+\end{equation}
+
+so, using \autoref{eq:quadratic}, 
+
+\begin{gather}
+    u^{\prime\prime}(\xi_z) = 2A_z \\
+    \frac{u^{\prime\prime}(\xi_z)}{2} = A_z.
+\end{gather}
+
+This value is bounded by
+
+\begin{equation}\label{eq:bound}
+    \left|\frac{u^{\prime\prime}(\xi_z)}{2} \right| \leq \max_{a \in [x_{j-1}, x_j]}  \left|\frac{u^{\prime\prime}(a)}{2}\right| \leq \max_{y \in [0, 1]}  \left|\frac{u^{\prime\prime}(y)}{2}\right|
+\end{equation}
+
+Then, for any $x \in [x_{j-1}, x_j]$, 
+
+\begin{align}
+    u(x) &= \tilde{u}(x) + A_x(x-x_j)(x-x_{j-1})\\
+    u(x) &= \tilde{u}(x) + \frac{u^{\prime\prime}(\xi_x)}{2}(x-x_j)(x-x_{j-1})\\
+    u(x) - \tilde{u}(x) &= \frac{u^{\prime\prime}(\xi_x)}{2}(x-x_j)(x-x_{j-1}),
+\end{align}
+
+so
+
+\begin{equation}
+    \left|u(x) - \tilde{u}(x)\right| = \left|\frac{u^{\prime\prime}(\xi_x)}{2}(x-x_j)(x-x_{j-1}) \right|.
+\end{equation}
+
+By submultaplicativity, 
+
+\begin{equation}
+    \left|u(x) - \tilde{u}(x)\right| \leq \left|\frac{u^{\prime\prime}(\xi_x)}{2}\right| \cdot \left|(x-x_j)(x-x_{j-1}) \right|.
+\end{equation}
+
+Applying the triangle inequality to the $(x-x_j)(x-x_{j-1})$ term and applying \autoref{eq:bound} to the $\frac{u^{\prime\prime}}{2}$ term, this is bounded by
+
+\begin{equation}
+   \left|u(x) - \tilde{u}(x)\right| \leq  \max_{y \in [0, 1]}  \left|\frac{u^{\prime\prime}(y)}{2}\right| \cdot \left( \left| x-x_j\right| + \left|x-x_{j-1} \right| \right),
+\end{equation}
+
+or 
+
+\begin{gather}
+    \left|u(x) - \tilde{u}(x)\right| \leq  \max_{y \in [0, 1]}  \left|\frac{u^{\prime\prime}(y)}{2}\right| \cdot h\\
+    \left|u(x) - \tilde{u}(x)\right| \leq  \max_{y \in [0, 1]}  \left|{u^{\prime\prime}(y)}\right| \cdot h.
+\end{gather}
+
+\subsection{} The inequality given is
+
+\begin{equation}
+    \norm{(u - u_h)^\prime} \leq h \cdot \max_{y \in [0, 1]}  \left|{u^{\prime\prime}(y)}\right|.
+\end{equation}
+
+
+The Cauchy-Schwarz Inequality states that $|\ip{\vec{x}}{\vec{y}}| \leq \norm{\vec{x}} \cdot \norm{\vec{y}}$, where $\ip{\vec{x}}{\vec{y}} = \int_0^1 \vec{x}\vec{y}dx$ is the inner product, and the norm $\norm{\cdot}$ is $\ip{\cdot}{\cdot}^{1/2}$ Let $\vec{x} = (u - u_h)^\prime$ and let $\vec{y} = 1$:
+
+\begin{equation}
+    |\ip{(u - u_h)^\prime}{1}| \leq \norm{(u - u_h)^\prime} \cdot \norm{1} \leq h \cdot \max_{y \in [0, 1]}  \left|{u^{\prime\prime}(y)}\right|,
+\end{equation}
+
+and, expanding the inner product definition,
+
+\begin{equation}
+    \left|\int_0^1 (u - u_h)^\prime dx \right| \leq h \cdot \max_{y \in [0, 1]}  \left|{u^{\prime\prime}(y)}\right|.
+\end{equation}
+
+Using a change of variables,
+
+\begin{equation}
+    \left|\int_0^x (u - u_h)^\prime (s) ds \right| \leq \left| \int_0^1 (u - u_h)^\prime (s) ds \right| \leq h \cdot \max_{y \in [0, 1]}  \left|{u^{\prime\prime}(y)}\right|
+\end{equation}
+
+for $x \in [0, 1]$, which becomes
+
+\begin{equation}
+     \left|\left[ u(x) - u_h(x) \right] - \cancel{\left[ u(0) - u_h(0) \right]} \right| \leq h \cdot \max_{y \in [0, 1]}  \left|{u^{\prime\prime}(y)}\right|
+\end{equation}
+
+\begin{equation}
+     \left| u(x) - u_h(x) \right| \leq h \cdot \max_{y \in [0, 1]}  \left|{u^{\prime\prime}(y)}\right|.
+\end{equation}
+
+\end{document}
