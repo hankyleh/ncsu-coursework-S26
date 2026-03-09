@@ -1,0 +1,174 @@
+\documentclass{midterm-template}
+
+\title{NE523 Midterm Exam}
+\author{Kyle Hansen}
+\date{11 March 2026}
+
+\usepackage{cancel}
+
+
+\begin{document}
+
+\maketitle{}
+
+\section{Integro-differential Form}
+
+The one-speed, steady-state transport equation with a uniformly distributed monoenergetic isotropic source and vacuum boundary on square slab with side length $a$ is
+
+\begin{subequations}
+   \begin{gather}
+    \begin{split}
+        \left[\mu \frac{\partial}{\partial x} + \eta \frac{\partial}{\partial y} \right]\psi(x, y, \mu, \eta) + \sigma_t \psi(x, y, \mu, \eta) = S,\\ \quad x \in (0, a), \quad y \in (0,  a), \quad \mu, \eta \in (-1, 1) \label{eq:integro-differential}
+    \end{split}\\
+    \psi(0, y, \mu, n) = 0, \quad \mu > 0\\
+    \psi(a, y, \mu, n) = 0, \quad \mu < 0\\
+    \psi(x, 0, \mu, n) = 0, \quad \eta > 0\\
+    \psi(x, a, \mu, n) = 0, \quad \eta < 0
+\end{gather} 
+\end{subequations}
+
+where $\sigma_t(x, y) = \sigma_t$ is constant absorption cross section, and $S(x, y) = S$ is the uniformly distributed isotropic source ($neutrons \; cm^{-1} str^{-1}$).
+
+\section{Integral Form}
+
+Since neutrons travel in a straight line (between collisions) in direction $(\mu, \eta)$, any position in the neutron's path can be parameterized with 
+
+\begin{subequations}\label{eq:parameterization}
+    \begin{gather}
+        x = x_0 + \mu s\\
+         y = y_0 + \eta s
+    \end{gather}
+\end{subequations}
+
+
+where $s$ is the total distance traveled from the point $(x_0, y_0)$. Taking the derivative of $\psi$ along the parameter $s$, using the chain rule, yields
+
+\begin{equation}
+    \frac{\partial \psi}{\partial s} = \frac{\partial \psi}{\partial x} \frac{\partial x}{\partial s} + \frac{\partial \psi}{\partial y} \frac{\partial y}{\partial s}
+\end{equation}
+
+Using the derivative of \autoref{eq:parameterization}, this becomes
+
+\begin{equation}\label{eq:d-ds}
+    \frac{\partial \psi}{\partial s} = \frac{\partial \psi}{\partial x} \mu + \frac{\partial \psi}{\partial y} \eta,
+\end{equation}
+
+which is equivalent to the bracketed term in \autoref{eq:integro-differential}. The transport equation can be converted into an ordinary differential equation by substituting Equations~\ref{eq:parameterization} and~\ref{eq:d-ds} into the integro-differential form:
+
+\begin{equation}\label{eq:ode}
+    \frac{d}{ds}\psi(x_0 + \mu s, y_0 + \eta s, \mu, \eta) + \sigma_t \psi(x_0 + \mu s, y_0 + \eta s, \mu, \eta) = S.
+\end{equation}
+
+\section{Integration Along Characteristic}
+
+Integration of \autoref{eq:ode} can be facilitated using an integrating factor
+
+\begin{equation}\label{eq:integrating-factor}
+    I(s) = \exp\left[ \int_0^{s} \sigma_t ds^{\prime \prime} \right]
+\end{equation}
+
+where
+
+\begin{equation}\label{eq:dIds}
+    \frac{d}{ds} I(s) = \sigma_t I(s).
+\end{equation}
+
+Multiplying \autoref{eq:ode} by $I(s)$ yields
+
+\begin{equation}
+    \frac{d}{ds} \left\{ \psi(x_0 + \mu s, y_0 + \eta s, \mu, \eta)  \vphantom{\frac{}{}} \right\}I(s) + \sigma_t I(s) \psi(x_0 + \mu s, y_0 + \eta s, \mu, \eta)  = S I(s).
+\end{equation}
+
+Using \autoref{eq:dIds}, this can be rewritten as
+
+\begin{equation}
+    \frac{d}{ds} \left\{ \psi(x_0 + \mu s, y_0 + \eta s, \mu, \eta)  \vphantom{\frac{}{}} \right\}I(s)
+     + \frac{d}{ds} \left\{ I(s) \vphantom{\frac{}{}} \right\} \psi(x_0 + \mu s, y_0 + \eta s, \mu, \eta)  = S I(s),
+\end{equation}
+
+which is, by inverting product rule for derivatives, equivalent to 
+
+\begin{equation}
+    \frac{d}{ds} \left\{ \psi(x_0 + \mu s, y_0 + \eta s, \mu, \eta)  \vphantom{\frac{}{}} I(s) \right\}  = S I(s).
+\end{equation}
+
+Integrating this along the characteristic yields
+
+\begin{align}
+    \int_0^s ds^\prime \psi(x_0 + \mu s^\prime, y_0 + \eta s^\prime, \mu, \eta) I(s^\prime)& = S\int_0^s ds^\prime I\left(s^\prime\right)\\
+     \left.\psi(x_0 + \mu s^\prime, y_0 + \eta s^\prime, \mu, \eta) \exp\left( \int_0^{s^\prime} \sigma_t ds^{\prime \prime} \right) \vphantom{\frac{}{}}\right|_{s^\prime = 0}^s &= S\int_0^s ds^\prime \exp\left( \int_0^{s^\prime} \sigma_t ds^{\prime \prime} \right).
+\end{align}
+
+Introducing optical length $\tau(x_0+\mu s, y_0+ \eta s, x_0, y_0) = \int_0^s ds^{\prime\prime}\sigma_t$, this can be written as
+
+\begin{multline}
+    \left.\psi(x_0 + \mu s^\prime, y_0 + \eta s^\prime, \mu, \eta) \exp\left[ \tau(x_0+\mu s^\prime, y_0+ \eta s^\prime, x_0, y_0) \right] \vphantom{\frac{}{}}\right|_{s^\prime = 0}^s \\
+    = S\int_0^s ds^\prime \exp\left[ \tau(x_0+\mu s^\prime, y_0+ \eta s^\prime, x_0, y_0) \right]
+\end{multline}
+
+\begin{multline}
+    \psi(x_0 + \mu s, y_0 + \eta s, \mu, \eta) \exp\left[ \tau(x_0+\mu s, y_0+ \eta s, x_0, y_0) \right] - \psi(x_0, y_0, \mu, \eta) \\
+    = S\int_0^s ds^\prime \exp\left[ \tau(x_0+\mu s^\prime, y_0+ \eta s^\prime, x_0, y_0) \right]
+\end{multline}
+
+\begin{multline}
+    \psi(x_0 + \mu s, y_0 + \eta s, \mu, \eta) \exp\left[ \tau(x_0+\mu s, y_0+ \eta s, x_0, y_0) \right] \\
+    = \psi(x_0, y_0, \mu, \eta)  + S\int_0^s ds^\prime \exp\left[ \tau(x_0+\mu s^\prime, y_0+ \eta s^\prime, x_0, y_0) \right]
+\end{multline}
+
+\begin{equation}
+    \psi(x_0 + \mu s, y_0 + \eta s, \mu, \eta)  = \frac{\psi(x_0, y_0, \mu, \eta)  + S\int_0^s ds^\prime \exp\left[ \tau(x_0+\mu s^\prime, y_0+ \eta s^\prime, x_0, y_0) \right]}{\exp\left[ \tau(x_0+\mu s, y_0+ \eta s, x_0, y_0) \right]} 
+\end{equation}
+
+\subsection{Solution}
+
+Since $\sigma_t$ is constant, the optical length is 
+
+\begin{equation}\label{eq:optical-length}
+    \tau(s) = \int_0^s ds^{\prime\prime}\sigma_t = \sigma_t s.
+\end{equation}
+
+Since the boundary condition is vacuum, then $\psi(x_0, y_0, \mu, \eta) = 0$ for appropriate choice of $(x_0, y_0)$ corresponding with the direction of the characteristic.
+
+For $\eta > \mu > 0$, the solution is
+
+\begin{align}
+    \psi(s, \mu, \eta) &= S\frac{\int_0^s ds^\prime e^{\sigma_t s^\prime}}{e^{\sigma_t s}}\\
+     &= S \frac{\frac{1}{\sigma_t} \left[ e^{\sigma_t s} - 1 \right]}{e^{\sigma_t s}}\\
+    \psi(s, \mu, \eta) &= \frac{S}{\sigma_t} \left[1 - e^{-\sigma_t s} \right]\label{eq:param-solution}
+\end{align}
+
+where $s = \min\{\frac{x}{\mu}, \frac{y}{\eta}\}$ is the distance from the intersection of the characteristic curve and the boundary. Then the solution for $\eta > \mu > 0$ is 
+
+\begin{equation}
+    \psi(x, y, \mu, \eta) = \begin{cases}
+        \frac{S}{\sigma_t} \left(1 - \exp\left[-\frac{\sigma_t}{\mu} x  \right] \right), & \eta x < \mu y\\
+        \frac{S}{\sigma_t} \left(1 - \exp\left[-\frac{\sigma_t}{\eta} y  \right] \right), & \eta x > \mu y
+    \end{cases}
+\end{equation}
+
+\section{Solution Sketch}
+
+\section{Other Cases}
+
+For other characteristic curves, the parameterized solution (\autoref{eq:param-solution}) does not change, only the definition of $s$. 
+
+For $\mu < 0, \eta < 0$, $(x_0, y_0)$ now lies on the top or right boundaries ($x=a$ or $y=a$), so $s = \min\left\{ \frac{x-a}{\mu}, \frac{y-a}{\eta} \right\}$, and the solution becomes
+
+\begin{equation}
+    \psi(x, y, \mu, \eta) = \begin{cases}
+        \frac{S}{\sigma_t} \left(1 - \exp\left[-\frac{\sigma_t}{\mu} (x-a)  \right] \right), & \eta (x-a) < \mu (y-a)\\
+        \frac{S}{\sigma_t} \left(1 - \exp\left[-\frac{\sigma_t}{\eta} (y-a)  \right] \right), & \eta (x-a) > \mu (y-a).
+    \end{cases}
+\end{equation}
+
+Similarly, for $\mu<0, \eta > 0$, $(x_0, y_0)$ lies on the lower and right boundaries, $x=a$ and $y=0$, so $s = \min\left\{ \frac{x-a}{\mu}, \frac{y}{\eta} \right\}$. The solution is 
+
+\begin{equation}
+    \psi(x, y, \mu, \eta) = \begin{cases}
+        \frac{S}{\sigma_t} \left(1 - \exp\left[-\frac{\sigma_t}{\mu} (x-a)  \right] \right), & \eta (x-a) < \mu y\\
+        \frac{S}{\sigma_t} \left(1 - \exp\left[-\frac{\sigma_t}{\eta} (y)  \right] \right), & \eta (x-a) > \mu y.
+    \end{cases}
+\end{equation}
+
+\end{document}
