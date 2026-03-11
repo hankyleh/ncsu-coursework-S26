@@ -103,21 +103,27 @@ Introducing optical length $\tau(x_0+\mu s, y_0+ \eta s, x_0, y_0) = \int_0^s ds
 
 \begin{multline}
     \left.\psi(x_0 + \mu s^\prime, y_0 + \eta s^\prime, \mu, \eta) \exp\left[ \tau(x_0+\mu s^\prime, y_0+ \eta s^\prime, x_0, y_0) \right] \vphantom{\frac{}{}}\right|_{s^\prime = 0}^s \\
-    = S\int_0^s ds^\prime \exp\left[ \tau(x_0+\mu s^\prime, y_0+ \eta s^\prime, x_0, y_0) \right]
+    = S\int_0^s ds^\prime \exp\left[ \tau(x_0+\mu s^\prime, y_0+ \eta s^\prime, x_0, y_0) \right].
 \end{multline}
+
+The left-hand side is evaluated at the bounds,
 
 \begin{multline}
     \psi(x_0 + \mu s, y_0 + \eta s, \mu, \eta) \exp\left[ \tau(x_0+\mu s, y_0+ \eta s, x_0, y_0) \right] - \psi(x_0, y_0, \mu, \eta) \\
-    = S\int_0^s ds^\prime \exp\left[ \tau(x_0+\mu s^\prime, y_0+ \eta s^\prime, x_0, y_0) \right]
+    = S\int_0^s ds^\prime \exp\left[ \tau(x_0+\mu s^\prime, y_0+ \eta s^\prime, x_0, y_0) \right],
 \end{multline}
+
+and the terms are rearranged,
 
 \begin{multline}
     \psi(x_0 + \mu s, y_0 + \eta s, \mu, \eta) \exp\left[ \tau(x_0+\mu s, y_0+ \eta s, x_0, y_0) \right] \\
-    = \psi(x_0, y_0, \mu, \eta)  + S\int_0^s ds^\prime \exp\left[ \tau(x_0+\mu s^\prime, y_0+ \eta s^\prime, x_0, y_0) \right]
+    = \psi(x_0, y_0, \mu, \eta)  + S\int_0^s ds^\prime \exp\left[ \tau(x_0+\mu s^\prime, y_0+ \eta s^\prime, x_0, y_0) \right],
 \end{multline}
 
+finally yielding
+
 \begin{equation}
-    \psi(x_0 + \mu s, y_0 + \eta s, \mu, \eta)  = \frac{\psi(x_0, y_0, \mu, \eta)  + S\int_0^s ds^\prime \exp\left[ \tau(x_0+\mu s^\prime, y_0+ \eta s^\prime, x_0, y_0) \right]}{\exp\left[ \tau(x_0+\mu s, y_0+ \eta s, x_0, y_0) \right]} 
+    \psi(x_0 + \mu s, y_0 + \eta s, \mu, \eta)  = \frac{\psi(x_0, y_0, \mu, \eta)  + S\int_0^s ds^\prime \exp\left[ \tau(x_0+\mu s^\prime, y_0+ \eta s^\prime, x_0, y_0) \right]}{\exp\left[ \tau(x_0+\mu s, y_0+ \eta s, x_0, y_0) \right]}.
 \end{equation}
 
 \subsection{Solution}
@@ -142,12 +148,33 @@ where $s = \min\{\frac{x}{\mu}, \frac{y}{\eta}\}$ is the distance from the inter
 
 \begin{equation}
     \psi(x, y, \mu, \eta) = \begin{cases}
-        \frac{S}{\sigma_t} \left(1 - \exp\left[-\frac{\sigma_t}{\mu} x  \right] \right), & \eta x < \mu y\\
+        \frac{S}{\sigma_t} \left(1 - \exp\left[-\frac{\sigma_t}{\mu} x  \right] \right), & \eta x \leq \mu y\\
         \frac{S}{\sigma_t} \left(1 - \exp\left[-\frac{\sigma_t}{\eta} y  \right] \right), & \eta x > \mu y
     \end{cases}
 \end{equation}
 
 \section{Solution Sketch}
+
+An example of the solution shape for $\eta > \mu > 0$ can be seen in \autoref{fig:solution}, and the solution along the characteristic line can be seen in \autoref{fig:characteristic}. The solution along the characteristic line asymptotically approaches the infinite-medium solution, $S/\sigma_t$ (see \autoref{eq:param-solution}). This is also the solution in 1d slab geometry for $\mu = 1$.
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}{0.48\textwidth}
+        \includegraphics[width=\linewidth]{soln.png}
+        \caption{}
+    \end{subfigure}
+    \begin{subfigure}{0.48\textwidth}
+        \includegraphics[width=\linewidth]{proj.png}
+        \caption{}
+    \end{subfigure}
+    \caption{Example solution for $\eta > \mu > 0$}\label{fig:solution}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.45\linewidth]{characteristic.png}
+    \caption{Solution along characteristic line}\label{fig:characteristic}
+\end{figure}
 
 \section{Other Cases}
 
@@ -157,7 +184,7 @@ For $\mu < 0, \eta < 0$, $(x_0, y_0)$ now lies on the top or right boundaries ($
 
 \begin{equation}
     \psi(x, y, \mu, \eta) = \begin{cases}
-        \frac{S}{\sigma_t} \left(1 - \exp\left[-\frac{\sigma_t}{\mu} (x-a)  \right] \right), & \eta (x-a) < \mu (y-a)\\
+        \frac{S}{\sigma_t} \left(1 - \exp\left[-\frac{\sigma_t}{\mu} (x-a)  \right] \right), & \eta (x-a) \leq \mu (y-a)\\
         \frac{S}{\sigma_t} \left(1 - \exp\left[-\frac{\sigma_t}{\eta} (y-a)  \right] \right), & \eta (x-a) > \mu (y-a).
     \end{cases}
 \end{equation}
@@ -166,7 +193,7 @@ Similarly, for $\mu<0, \eta > 0$, $(x_0, y_0)$ lies on the lower and right bound
 
 \begin{equation}
     \psi(x, y, \mu, \eta) = \begin{cases}
-        \frac{S}{\sigma_t} \left(1 - \exp\left[-\frac{\sigma_t}{\mu} (x-a)  \right] \right), & \eta (x-a) < \mu y\\
+        \frac{S}{\sigma_t} \left(1 - \exp\left[-\frac{\sigma_t}{\mu} (x-a)  \right] \right), & \eta (x-a) \leq \mu y\\
         \frac{S}{\sigma_t} \left(1 - \exp\left[-\frac{\sigma_t}{\eta} (y)  \right] \right), & \eta (x-a) > \mu y.
     \end{cases}
 \end{equation}
