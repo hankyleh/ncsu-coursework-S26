@@ -1,0 +1,280 @@
+\documentclass{hw-template}
+\author{Kyle Hansen}
+\date{30 March 2026}
+\title{NE523 HW 3}
+
+\newcommand{\p}{^\prime}
+\newcommand{\hOm}{\hat{\Omega}}
+\usepackage{cancel}
+
+
+\begin{document}
+\maketitle
+
+\section{Distribution Functions}
+
+The flux energy spectrum is a distribution,
+
+\begin{equation}
+    \psi(E) = 1/E,
+\end{equation}
+
+while the cross sections are point functions,
+
+\begin{gather}
+    \sigma_s(E) = \sigma_0,\\
+    \sigma_a(E) = \sigma_{a0}\sqrt{E_0/E}.
+\end{gather}
+
+\subsection{}
+
+Since $\phi$ is a distribution, it must be multiplied by $|dE/du|$ to keep its integral properties under a change of variables. Lethargy is defined to be
+
+\begin{equation}
+    u = \ln\left( \frac{E_0}{E} \right),
+\end{equation}
+
+and
+
+\begin{equation}
+    E = E_0e^{-u}.
+\end{equation}
+
+The derivative is
+
+\begin{equation}
+    \frac{dE}{du} = -E_0e^{-u} = -E.
+\end{equation}
+
+Using these terms,
+
+\begin{align}
+    \phi(u) &= \phi(E)\left| \frac{dE}{du} \right|\\
+     &= \frac{1}{E} E\\
+     \phi(u) &= 1.
+\end{align}
+
+The point functions can simply be transformed using the change of variables,
+
+\begin{equation}
+    \sigma_s(u) = \sigma_0,
+\end{equation}
+\begin{align}
+    \sigma_a(u) &= \sigma_{a0}\sqrt{E_0/E}\\
+                &= \sigma_{a0}\sqrt{e^u}\\
+                &= \sigma_{a0}e^{u/2}.
+\end{align}
+
+\subsection{}
+
+The function $f_n$ is a distribution in $E\p$, so must be transformed in a similar way to $\phi$,
+
+\begin{equation}
+    f_n(u \rightarrow u\p, \hOm \cdot \hOm\p) = f_n(E \rightarrow E\p,\hOm\cdot\hOm\p)\left|\frac{dE\p}{du\p} \right|.
+\end{equation}
+
+Since $\left|\frac{dE\p}{du\p} \right| = E\prime$,
+
+\begin{equation}
+    f_n(u \rightarrow u\p, \hOm \cdot \hOm\p) = \begin{cases}
+        \frac{E\p}{(1-\alpha)E}\delta(\hOm \cdot \hOm\p - \tilde{\mu}), & \alpha E \leq E\p < E\\
+        0, & \text{otherwise},
+    \end{cases}
+\end{equation}
+
+where
+
+\begin{equation}
+    \tilde{\mu} = \frac{1}{2}\left[(A+1)\sqrt{\frac{E\p}{E}} - (A-1)\sqrt{\frac{E}{E\p}} \right]
+\end{equation}
+
+and $A$ is the atomic mass. Plugging in the $E = E_0 e^{-u}$,
+
+\begin{equation}
+    f_n(u \rightarrow u\p, \hOm \cdot \hOm\p) = \begin{cases}
+        \frac{\cancel{E_0} e^{-u\p}}{(1-\alpha)\cancel{E_0} e^{-u}}\delta(\hOm \cdot \hOm\p - \tilde{\mu}), & \alpha E \leq E\p < E\\
+        0, & \text{otherwise},
+    \end{cases}
+\end{equation}
+
+\begin{equation}
+    f_n(u \rightarrow u\p, \hOm \cdot \hOm\p) = \begin{cases}
+        \frac{e^{-(u\p - u)}}{(1-\alpha)}\delta(\hOm \cdot \hOm\p - \tilde{\mu}), & \alpha E \leq E\p < E\\
+        0, & \text{otherwise},
+    \end{cases}
+\end{equation}
+
+and transforming the boundaries,
+
+\begin{equation}
+    f_n(u \rightarrow u\p, \hOm \cdot \hOm\p) = \begin{cases}
+        \frac{e^{-(u\p - u)}}{(1-\alpha)}\delta(\hOm \cdot \hOm\p - \tilde{\mu}), & -u\ln\alpha \leq -u\p < -u\\
+        0, & \text{otherwise},
+    \end{cases}
+\end{equation}
+
+or
+
+\begin{equation}\label{eq:fn}
+    f_n(u \rightarrow u\p, \hOm \cdot \hOm\p) = \begin{cases}
+        \frac{e^{-(u\p - u)}}{(1-\alpha)}\delta(\hOm \cdot \hOm\p - \tilde{\mu}), & u < u\p < u\ln\alpha\\
+        0, & \text{otherwise}.
+    \end{cases}
+\end{equation}
+
+\subsection{}
+
+Since $f_n$ is only nonzero within the bounds $u < u\p < u\ln\alpha$, the integral bounds can be changed,
+
+\begin{equation}
+    \int\limits_{-\infty}^{\infty}du\p \int\limits_{4\pi}d\hOm\p \; f_n(u \rightarrow u\p, \hOm \cdot \hOm\p) = \int\limits_{u}^{u\ln\alpha}du\p \int\limits_{4\pi}d\hOm\p\; f_n(u \rightarrow u\p, \hOm \cdot \hOm\p).
+\end{equation}
+
+So using \autoref{eq:fn},
+
+\begin{align}
+    \int\limits_{-\infty}^{\infty}du\p \int\limits_{4\pi}d\hOm\p \; f_n(u \rightarrow u\p, \hOm \cdot \hOm\p) &= \int\limits_{u}^{u\ln\alpha}du\p \int\limits_{4\pi}d\hOm\p\; \frac{e^{-(u\p - u)}}{(1-\alpha)}\delta(\hOm \cdot \hOm\p - \tilde{\mu})\\
+    &= \frac{e^u}{1-\alpha}\int\limits_{u}^{u\ln\alpha}du\p\; e^{-u\p} \int\limits_{4\pi}d\hOm\p\; \delta(\hOm \cdot \hOm\p - \tilde{\mu}).
+\end{align}
+
+From the definition of the dirac delta function, the integral over angle equals one, so
+
+\begin{align}
+    \int\limits_{-\infty}^{\infty}du\p \int\limits_{4\pi}d\hOm\p \; f_n(u \rightarrow u\p, \hOm \cdot \hOm\p)&= \frac{e^u}{1-\alpha}\int\limits_{u}^{u\ln\alpha}du\p\; e^{-u\p}\\
+    &= \frac{e^u}{1-\alpha} \left[-e^{-u\p}\vphantom{\frac{}{}} \right]_{u\p = u}^{u\ln\alpha}\\
+    &= \frac{e^u}{1-\alpha} \left[-\alpha e^u + e^u\vphantom{\frac{}{}} \right]\\
+    &= \frac{2}{1-\alpha} \left[-\alpha + 1\vphantom{\frac{}{}} \right]\\
+    &= 1.
+\end{align}
+
+\section{Uncollided Flux}
+
+In a homogenous, source-free slab of thickness $a$, the transport equation for uncollided flux only (no scattering source) is
+
+\begin{equation}
+    \mu \frac{d}{dx}\psi_0(x, \mu, E) + \Sigma(E)\psi_0(x, \mu, E) = 0, \qquad 0< x< a,
+\end{equation}
+
+with vacuum boundary given by
+
+\begin{equation}
+    \psi_0(a, \mu, E) = 0, \quad \mu < 0,
+\end{equation}
+
+and the incoming flux boundary condition given by
+
+\begin{equation}
+    \psi_0(0, \mu, E) = I \delta(\mu - \tilde{\mu})\delta(E-E_0), \quad \mu > 0.
+\end{equation}
+
+The ODE is solved with separation of variables,
+
+\begin{align}
+    \mu \frac{d\psi_0}{dx} &= - \Sigma_t(E)\psi_0\\
+    \int \frac{1}{\psi_0} d\psi_0 &= - \int\frac{\Sigma_t(E)}{\mu} dx\\
+    \ln \psi_0 &= \frac{-\Sigma_t x}{\mu} + c_0\\
+    \psi_0(x, \mu, E) &= c_1(\mu, E) e^{-\frac{\Sigma_t}{\mu}x}.
+\end{align}
+
+The incoming flux boundary conditions are used to find $c_1(\mu, E)$,
+
+\begin{equation}
+    \psi_0(0, \mu, E) = c_1 = I \delta(\mu - \tilde{\mu})\delta(E-E_0), \quad \mu > 0,
+\end{equation}
+
+\begin{align}
+    \psi_0(a, \mu, E) = c_1 e^{-\frac{\Sigma_t}{\mu}a} &= 0\\
+    c_1(\mu, E) &= 0, \quad \mu < 0.
+\end{align}
+
+Using these values of $c_1$, the solution for the uncollided flux is thus
+
+\begin{equation}\label{eq:uncollided}
+    \psi_0(x, \mu, E) =  I\delta(\mu - \tilde{\mu})\delta(E-E_0) e^{-\frac{\Sigma_t}{\mu}x}.
+\end{equation}
+
+
+\section{Once-collided flux}
+
+Applying the scattering operator to \autoref{eq:uncollided} yields
+
+\begin{equation}
+    q_{s, 1} = \int\limits_{0}^{\infty}dE\p\int\limits_{-1}^{1}d\mu\p\; \Sigma_s(E\p \rightarrow E, \mu_0)\psi_0(x, \mu\p, E\p),
+\end{equation}
+
+where $\mu_0$ is the scattering angle. To avoid using $\mu_0$, this can also be expanded using the legendre moments of the scattering cross section,
+
+\begin{equation}
+    q_{s, 1} = \sum_{l=0}^\infty (2l + 1)P_l(\mu) \int\limits_{0}^{\infty}dE\p\; \Sigma_{s,l}(E\p \rightarrow E)\phi_{l, 0}(x, E\p)
+\end{equation}
+
+where $\Sigma_{s, l}$ is the cross section projected onto the $l$th Legendre polynomial, and $\phi_{l, 0}$ is the $l$th Legendre moment of $\psi_0$,
+
+\begin{align}
+    \phi_{l, 0} &= \int\limits_{-1}^1 d\mu\p\; \frac{1}{2}P_l(\mu\p)\psi_0(x, \mu\p, E, t)\\
+    &=  \frac{1}{2}IP_l(\tilde{\mu})\delta(E-E_0) e^{-\frac{\Sigma_t}{\tilde{\mu}}x}.
+\end{align}
+
+Plugging back into the equation for the source,
+
+\begin{align}
+    q_{s, 1} &= \frac{1}{2}I\sum_{l=0}^\infty (2l + 1)P_l(\mu)P_l(\tilde{\mu}) \int\limits_{0}^{\infty}dE\p\; \Sigma_{s,l}(E\p \rightarrow E)\delta(E-E_0) e^{-\frac{\Sigma_t}{\tilde{\mu}}x}\\
+    &= \frac{1}{2}I\sum_{l=0}^\infty (2l + 1)P_l(\mu)P_l(\tilde{\mu})  \Sigma_{s,l}(E_0 \rightarrow E)e^{-\frac{\Sigma_t(E_0)}{\tilde{\mu}}x}
+\end{align}
+
+
+and the equation for once-collided flux is
+
+\begin{equation}
+    \mu \frac{d}{dx}\psi_1(x, \mu, E) + \Sigma_t(E)\psi_1(x, \mu, E) =  \frac{1}{2}I\sum_{l=0}^\infty (2l + 1)P_l(\mu)P_l(\tilde{\mu})  \Sigma_{s,l}(E_0 \rightarrow E)e^{-\frac{\Sigma_t(E_0)}{\tilde{\mu}}x}
+\end{equation}
+\begin{gather}
+    \psi_1(0, \mu, E) = 0, \quad \mu > 0\\
+    \psi_1(a, \mu, E) = 0, \quad \mu < 0,
+\end{gather}
+
+where both boundary conditions are vacuum, since the beam contributes only to uncollided flux.
+
+\section{Point source}
+
+The integral transport equation for isotropic scattering and isotropic source is
+
+\begin{multline}
+    \phi(\vec{r}, E) = \int\limits_V dV\p\; \frac{\exp\left[-\tau(E, \vec{r}\p \rightarrow \vec{r}) \right]}{4\pi \left|\vec{r}\p - \vec{r}\right|^2}\\
+    \left[\int\limits_0^\infty dE\p\; \left(\Sigma_s(\vec{r}\p, E\p \rightarrow E) + \chi(E)\nu(E\p)\Sigma_f(\vec{r}\p, E\p) \right)\phi(\vec{r}\p, E\p) + S(\vec{r}\p, E) \right],
+\end{multline}
+
+and in the case of zero scattering and zero fission, there is no secondary source and the equation becomes
+
+\begin{equation}
+    \phi(\vec{r}, E) = \int\limits_V dV\p\; \frac{\exp\left[-\tau(E, \vec{r}\p \rightarrow \vec{r}) \right]}{4\pi \left|\vec{r}\p - \vec{r}\right|^2}S(\vec{r}\p, E).
+\end{equation}
+
+In a homogenous medium, the optical length is
+
+\begin{align}
+    \tau(E, \vec{r} - \rho\p\hOm\rightarrow\vec{r}) &= \int\limits_0^{\rho\p}d\rho^{\prime\prime}\Sigma_t(\vec{r} - \hOm\rho^{\prime\prime}, E)\\
+    &= \Sigma_t(E)\rho\p.
+\end{align}
+
+Then let $r\p = |\vec{r}\p - \vec{r}|$. Using this optical length, and plugging in the point source, the integral transport equation becomes
+
+\begin{equation}
+    \phi(\vec{r}, E) = \int\limits_V dV\p\; \frac{\exp\left[-\Sigma_t(E) r\p \right]}{4\pi r^{\prime 2}}S(E)\delta(\vec{r}\p).
+\end{equation}
+
+Integrating the dirac delta yields
+
+\begin{equation}
+    \phi(\vec{r}, E) =  \frac{\exp\left[-\Sigma_t(E) r \right]}{4\pi r^{ 2}}S(E),
+\end{equation}
+
+where $r = |\vec{r}|$.
+
+
+
+
+
+
+
+\end{document}
