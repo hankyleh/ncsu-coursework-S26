@@ -7,6 +7,11 @@
 
 \begin{document}
 
+\newcommand{\hn}[1]{\left\| {#1} \right\|_{H^k}}\
+\newcommand{\iph}[2]{\left({#1}, {#2}\right)_{H^k}}
+\newcommand{\ipl}[2]{\left\langle{#1}, {#2}\right\rangle_{L_2(\Omega)}}
+\newcommand{\da}{D^{\alpha}}
+
 \maketitle
 
 \section{Error bound}
@@ -109,5 +114,259 @@ for $x \in [0, 1]$, which becomes
 \begin{equation}
      \left| u(x) - u_h(x) \right| \leq h \cdot \max_{y \in [0, 1]}  \left|{u^{\prime\prime}(y)}\right|.
 \end{equation}
+
+\section{Formulations}
+
+\subsection{} First, to show that (V)$\implies$ (M):
+
+Let $u^v$ be a solution to (V), so
+
+\begin{equation}\label{eq:variational}
+    a(u^v, v) = L(v) \forall v \in \mathbb{V}.
+\end{equation}
+
+Then let $w \in \mathbb{V}$, and consider
+
+\begin{equation}
+    F\left( u^v + w \right) = \frac{1}{2}a\left(u^v + w, u^v + w \right) - L\left( u^v + w\right).
+\end{equation}
+
+Since $a$ is bilinear and $L$ is linear, this can be rewritten
+
+\begin{align}
+    F\left( u^v + w \right) &= \frac{1}{2}  a(u^v, u^v) + a(u^v, w) + \frac{1}{2}a(w, w) - L\left( u^v \right) - L(w)\\
+    F\left( u^v + w \right) &= \frac{1}{2}  a(u^v, u^v)+ \frac{1}{2}a(w, w)  + \left[ a(u^v, w) - L(w) \right] - L\left( u^v \right).
+\end{align}
+
+From \autoref{eq:variational}, the bracketed term is zero, and 
+
+\begin{align}
+    F\left( u^v + w \right) &= \frac{1}{2}  a(u^v, u^v)+ \frac{1}{2}a(w, w)   - L\left( u^v \right)\\
+    F\left( u^v + w \right) &= F(u^v) + \frac{1}{2}a(w, w) \geq F(u^v).
+\end{align}
+
+Since the bilinear $a(w,w)$ is strictly non-negative, this inequality applies. For any $w$, $F(u^v)\leq F(u^v + w)$, so for any $v$, $F(u^v)\leq F(v)$ and (M) is satistified, and thus (V) $\implies$ (M).
+
+Next, to show that (M) $\implies$ (V), consider $u^m$ that satisfies (M). Then $u^m$ minimizes $F()$. Consider the scalar function
+
+\begin{equation}
+    f(\epsilon) = F(u^m + \epsilon v)
+\end{equation}
+
+for some $v$. Since $u_m$ minimizes $F$, then $\epsilon = 0$ minimizes $f$, so
+
+\begin{equation}
+    \left.\frac{\partial f}{\partial \epsilon} \right|_{\epsilon = 0} = 0.
+\end{equation}
+
+Expanding this yields
+
+\begin{gather}
+     \left.\frac{\partial }{\partial \epsilon} \left( F(u^m + \epsilon v) \right) \right|_{\epsilon = 0} =0 \\
+     \left.\frac{\partial }{\partial \epsilon}\left( \frac{1}{2} a(u^m + \epsilon v, u^m + \epsilon v) - L(u^m + \epsilon v) \right) \right|_{\epsilon = 0} =0\\
+     \left.\frac{\partial }{\partial \epsilon}\left( \frac{1}{2} a(u^m, u^m) + a(u^m, \epsilon v) + \frac{1}{2}a(\epsilon v, \epsilon v) - L(u^m) - L(\epsilon v) \right) \right|_{\epsilon = 0}=0\\
+     \left.\frac{\partial }{\partial \epsilon}\left( \frac{1}{2} a(u^m, u^m) + \epsilon a(u^m,  v) + \frac{\epsilon^2}{2}a( v,  v) - L(u^m) - \epsilon L( v) \right) \right|_{\epsilon = 0}=0\\
+     \left. \vphantom{\frac{}{}} a(u^m, v) + \epsilon a(v, v) - L(v) \right|_{\epsilon = 0}=0\\
+      a(u^m, v)  - L(v) =0
+\end{gather}
+
+since this applies for any $v \in \mathbb{V}$, (V) is satisfied and thus (M) $\implies$ (V). Since (M) $\implies$ (V) and (V) $\implies$ (M), (V)$\iff$ (M).
+
+\subsection{} Since $\mathbb{V}_h$ is a Hilbert space and $a$ is symmetric, linear, and coercive, and from part a, {(V) $\iff$ (M)}, so the variational solution $u_h$ also satisfies
+
+\begin{align}
+    F(u_h) &\leq F(v) \quad \forall\; v \in \mathbb{V}_h\\
+    2F(u_h) &\leq 2F(v) \\
+    a(u, u) + 2F(u_h) &\leq a(u, u) +  2F(v) \\
+    a(u, u) + a(u_h, u_h) - 2L(u_h) &\leq a(u, u) +  a(v, v) - 2L(v).
+\end{align}
+
+Since $u$ satisfies (V), $a(u, w) = L(w)$ for any $w$ in $\mathbb{V}$, including members of the subset $\mathbb{V}_h$, so 
+
+\begin{equation}
+    a(u, u) + a(u_h, u_h) - 2a(u, u_h) \leq a(u, u) +  a(v, v) - 2a(u, v)\quad \forall\; v \in \mathbb{V}_h.
+\end{equation}
+
+This can be rewritten, using the bilinearity of $a$, as
+
+\begin{align}
+    a(u-u_h, u-u_h) &\leq a(u-v, u-v)\\
+    \norm{u-u_h}_a^2 &\leq \norm{u-v}_a^2\\
+    \norm{u-u_h}_a &\leq \norm{u-v}_a \quad \forall\; v \in \mathbb{V}_h.
+\end{align}
+
+In other words, $u_h$ is the best approximation of $u$ of any function in the discretized set $\mathbb{V}_h$, using $a$-norm error.
+
+\section{Basis Functions}
+
+\subsection{} The three points form a triangle as long as they are not collinear, or if 
+
+\begin{equation}
+    [N_1 - N_2]^T[N_1 - N_3] \neq |N_1 - N_2| \cdot |N_1 - N_3|.
+\end{equation}
+
+\subsection{}
+
+Denoting the basis functions using
+
+\begin{equation}
+    \phi_j(x, y) = a_j x + b_j y + c_j,
+\end{equation}
+
+the condition can be notated as a linear system
+
+\begin{equation}
+    \begin{bmatrix}
+        1 & 0 & 0\\
+        1 & h & 0\\
+        1 & 0 & h
+    \end{bmatrix} \begin{bmatrix}
+        c_1 & c_2 & c_3\\
+        a_1 & a_2 & a_3\\
+        b_1 & b_2 & b_3
+    \end{bmatrix} = \begin{bmatrix}
+        1 & 0 & 0\\
+        0 & 1 & 0\\
+        0 & 0 & 1
+    \end{bmatrix}
+\end{equation}
+
+Then the coefficients are simply the entries of 
+
+\begin{equation}
+    A = \begin{bmatrix}
+        1 & 0 & 0\\
+        1 & h & 0\\
+        1 & 0 & h
+    \end{bmatrix}.
+\end{equation}
+
+This matrix $A^{-1}$ is easily found, since $A$ is lower triangular, to be
+
+\begin{equation}
+    A^{-1} = \begin{bmatrix}
+        1 & 0 & 0\\
+        \frac{-1}{h} & \frac{1}{h} & 0\\
+        \frac{-1}{h} & 0 & \frac{1}{h}
+    \end{bmatrix}.
+\end{equation}
+
+Then the basis functions are 
+
+\begin{align}
+    \phi_1(x, y) &= 1 - \frac{x}{h} + \frac{y}{h}\\
+    \phi_2(x, y) &= \frac{x}{h}\\
+    \phi_3(x, y) &= \frac{-1}{h}+ \frac{y}{h}.
+\end{align}
+
+Since a 2d linear function can be represented using coefficients $a, b, c$, any basis that spans $\mathbb{R}^3$ can be a basis for 2d linear functions. The columns of $A^{-1}$ are mutually orthogonal, and do span $\mathbb{R}^3$, so these basis functions $\phi_j$ do form a basis for 2d linear functions.
+
+\subsection{} First, the gradients of the basis functions are 
+
+\begin{align}
+    \nabla\phi_1(x, y) &= \begin{bmatrix}
+        \frac{-1}{h} & \frac{1}{h}
+    \end{bmatrix}^T\\
+    \nabla\phi_2(x, y) &= \begin{bmatrix}
+        \frac{1}{h} & 0
+    \end{bmatrix}^T\\
+    \nabla\phi_3(x, y) &= \begin{bmatrix}
+        0 & \frac{1}{h}
+    \end{bmatrix}^T.
+\end{align}
+
+Then, the stiffness matrix entries are 
+
+\begin{align}
+    a(\phi_1, \phi_1) &= \int_K \nabla \phi_1 \cdot \nabla\phi_1 dx\\
+                      &= \int_K  \left(\frac{1}{h} \right)^2 + \left(\frac{1}{h} \right)^2dx\\
+                      &= \frac{2}{h^2} \int_K dx\\
+                      &=1
+\end{align}
+
+\begin{align}
+    a(\phi_1, \phi_2) &= \int_K \nabla \phi_1 \cdot \nabla\phi_2 dx\\
+                      &= \int_K  \left(\frac{1}{h} \cdot \frac{-1}{h} \right) dx\\
+                      &= \frac{-1}{h^2} \int_K dx\\
+                      &= \frac{-1}{2}
+\end{align}
+
+\begin{align}
+    a(\phi_1, \phi_3) &= \int_K \nabla \phi_1 \cdot \nabla\phi_3 dx\\
+                      &= \int_K  \left(\frac{1}{h} \cdot \frac{-1}{h} \right) dx\\
+                      &= \frac{-1}{h^2} \int_K dx\\
+                      &= \frac{-1}{2}
+\end{align}
+
+\begin{align}
+    a(\phi_2, \phi_2) &= \int_K \nabla \phi_2 \cdot \nabla\phi_2 dx\\
+                      &= \int_K  \left(\frac{1}{h} \cdot \frac{1}{h} \right) dx\\
+                      &= \frac{1}{h^2} \int_K dx\\
+                      &= \frac{1}{2}
+\end{align}
+
+\begin{align}
+    a(\phi_2, \phi_3) &= \int_K \nabla \phi_2 \cdot \nabla\phi_3 dx\\
+                      &= \int_K  0 dx\\
+                      &= 0
+\end{align}
+
+\begin{align}
+    a(\phi_3, \phi_3) &= \int_K \nabla \phi_3 \cdot \nabla\phi_3 dx\\
+                      &= \int_K  \left(\frac{1}{h} \cdot \frac{1}{h} \right) dx\\
+                      &= \frac{1}{h^2} \int_K dx\\
+                      &= \frac{1}{2},
+\end{align}
+
+The stiffness matrix is symmetric since $a$ is bilinear, so the stiffness matrix $A$ matches the one given in the problem description.
+
+\section{Sobolev Space}
+
+\subsection{}
+
+\begin{align}
+    \hn{u} &= \sqrt{\iph{u}{u}}\\
+    \hn{u}^2 &= \iph{u}{u}\\
+             &= \sum_{|\alpha|\leq k} \ipl{D^{\alpha}u}{D^{\alpha}u}\\
+             &= \sum_{|\alpha|\leq s} \ipl{D^{\alpha}u}{D^{\alpha}u} + \sum_{s < |\alpha|\leq k} \ipl{D^{\alpha}u}{D^{\alpha}u}\\
+             &= \norm{u}_{H^s}^2 + \sum_{s < |\alpha|\leq k} \ipl{D^{\alpha}u}{D^{\alpha}u}.\label{eq:last}
+\end{align}
+
+Since the $L_2$ inner product is strictly non-negative, the rightmost term in \autoref{eq:last} is nonnegative, so
+
+\begin{align}
+    \norm{u}_{H^s}^2 + \sum_{s < |\alpha|\leq k} \ipl{D^{\alpha}u}{D^{\alpha}u} = \hn{u}^2\\
+    \sqrt{\norm{u}_{H^s}^2 + \sum_{s < |\alpha|\leq k} \ipl{D^{\alpha}u}{D^{\alpha}u}} = \hn{u}\\
+    \norm{u}_{H^s}^2  \leq \hn{u}
+\end{align}
+
+\subsection{}
+
+\begin{align}
+    \hn{u+v}^2 &= \iph{u+v}{u+v}\\
+               &= \iph{u}{u} + \iph{v}{v} + 2 \iph{u}{v}\\
+    \hn{u+v}^2 &= \hn{u}^2 + \hn{v}^2 + 2 \sum_{|\alpha|\leq k}\ipl{D^{\alpha}u}{D^{\alpha}v}.
+\end{align}
+
+By Cauchy-Schwarz in the $L_2$ norm,
+
+\begin{align}
+    \hn{u+v}^2 &\leq \hn{u}^2 + \hn{v}^2 + 2 \sum_{|\alpha|\leq k}\norm{D^{\alpha}u}_{L_2(\Omega)} \norm{D^{\alpha}v}_{L_2(\Omega)}\\
+    \hn{u+v}^2 &\leq \hn{u}^2 + \hn{v}^2 + 2 \sqrt{\left(\sum_{|\alpha|\leq k}\norm{D^{\alpha}u}_{L_2(\Omega)} \norm{D^{\alpha}v}_{L_2(\Omega)}\right)^2}.
+\end{align}
+
+Again by Cauchy-Schwarz,
+
+\begin{align}
+    \hn{u+v}^2 &\leq \hn{u}^2 + \hn{v}^2 + 2 \sqrt{\left(\sum_{|\alpha|\leq k} \norm{D^{\alpha}u}_{L_2(\Omega)}^2\right) \left(\sum_{|\alpha|\leq k} \norm{D^{\alpha}V}_{L_2(\Omega)}^2\right)}\\
+    &\leq \hn{u}^2 + \hn{v}^2 + 2 \hn{u} \cdot \hn{v},
+\end{align}
+
+Taking the square root, this becomes 
+
+\begin{equation}
+    \hn{u+v} \leq \hn{u} + \hn{v}
+\end{equation}
+
 
 \end{document}

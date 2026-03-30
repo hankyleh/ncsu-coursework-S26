@@ -11,3 +11,4 @@ _minted/
 *.xdv
 *.fdb_latexmk
 venv/
+.venv/
