@@ -1,1 +1,1 @@
-../hw-template.cls
+../../hw-template.cls
