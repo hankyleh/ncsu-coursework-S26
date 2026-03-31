@@ -10,5 +10,8 @@ _minted/
 *.fls
 *.xdv
 *.fdb_latexmk
+*.nav
+*.snm
+*Zone.Identifier
 venv/
 .venv/

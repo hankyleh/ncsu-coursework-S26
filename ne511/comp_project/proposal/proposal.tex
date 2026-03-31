@@ -1,0 +1,169 @@
+\documentclass{proposal}
+
+\title{\huge{Semester Project Description}\\\Large{NE 511}}
+\author{Kyle Hansen}
+\date{\today}
+
+\newcommand{\calL}{\mathcal{L}}
+\newcommand{\calS}{\mathcal{S}}
+\newcommand{\calH}{\mathcal{H}}
+\newcommand{\calQ}{\mathcal{Q}}
+\newcommand{\inv}{^{-1}}
+\newcommand{\ddz}{\frac{\partial}{\partial z}}
+\newcommand{\ddt}{\frac{\partial}{\partial t}}
+\newcommand{\ra}{\rightarrow}
+\newcommand{\qqquad}{\hskip 3em\relax}
+\newcommand{\T}[1]{\text{{#1}}}
+
+\usepackage{cleveref}
+
+
+\begin{document}
+
+\maketitle
+% TODO write abstract
+% \begin{abstract}
+%     Abstract content
+% \end{abstract}
+
+\section{Introduction}\label{sec:intro}
+
+% TODO write introduction
+
+\section{Problem Statement}\label{sec:statement}
+
+The system of equations for 1D time-dependent multigroup neutron transport with delayed neutron precursors and thermal-hydraulic (TH) feedback is
+
+\begin{subequations}\label{eq:multiphysics}
+    \begin{multline}\label{eq:transport}
+        \left[\frac{1}{v_g}\ddt + \mu \ddz + \Sigma_t(z)  \right]\psi_g(z, \mu, t) \\
+        = (1-\beta)\frac{\chi_{g}^p(z, t)}{2}\sum_{g^\prime=1}^{N_g}\nu_{g}(z)\Sigma_{f, g^\prime}(z)\phi_{g^\prime}(z, t)  + \frac{1}{2}\sum_{g^\prime = 1}^{N_g}\Sigma_{s, g^\prime \ra g}(z)\phi_{g^\prime}(z, t) \\
+        + \frac{1}{2}\sum_{k=1}^{6}\lambda_k \chi_{g, k}^d(z, t)C_k(z, t) + q_{g}(z, \mu, t),\\
+         g=1,\dots,N_g, \, 0\leq z \leq Z,\, -1 \leq \mu \leq 1, \, t>0
+    \end{multline}
+    \begin{gather}
+        \psi_g(z,\mu, 0) = \psi^0,\\
+        \psi_g(0,\mu, t) = \psi_{in,g, 0},\,\mu>0\qquad \psi_g(Z, \mu, t) = \psi_{in, g, Z},\,\mu<0
+    \end{gather}
+       \begin{equation}
+        \ddt C_k(z, t) = -\lambda_k C_k(z, t) + \sum_{g = 1}^{N_g}\beta_{k, g}(z, t)\nu_{g}\Sigma_{f, g}(z)\phi_g(z, t), \qquad k = 1, \dots, 6
+    \end{equation}
+    \begin{equation}
+        C_k(z, 0) = C_k^0, \qquad k=1, \dots, 6
+    \end{equation}
+    \begin{equation}
+        \phi_g(z, t) = \int_{-1}^{1}d\mu\,\psi_g(z, \mu, t),
+    \end{equation}
+    \begin{equation}\label{eq:th}
+        \calH T(z, t) = W\sum_{g=1}^{N_g}\Sigma_{f, g}(z)\phi_g(z, t),
+    \end{equation}
+    \begin{equation}
+        T(z, 0) = T^0,
+    \end{equation}
+\end{subequations}
+
+where
+
+\begin{description}[labelindent=1cm, labelwidth=1.2cm, before={\renewcommand\makelabel[1]{##1 $=$}}]
+    \item[$z$] spatial position
+    \item[$\mu$] direction cosine
+    \item[$t$] time
+    \item[$v_g$] particle velocity in group $g$
+    \item[$\psi_g$] angular flux in group $g$
+    \item[$\phi_g$] scalar flux in group $g$
+    \item[$\Sigma_{u, g}$] cross section of reaction $u$
+    \item[$\nu_g$] fission multiplicity in group $g$
+    \item[$\chi_g^p$] prompt neutron energy emission spectrum
+    \item[$\chi_{g, k}^d$] delayed neutron energy emission spectrum from precursor group $k$
+    \item[$\beta$] delayed neutron fraction
+    \item[$C_k$] precursor population of group $k$
+    \item[$\lambda_k$] average precursor decay constant of group $k$
+    \item[$T$] temperature
+    \item[$W$] energy released per fission
+\end{description}
+
+The TH operator $\calH$ can be treated using any TH code, but for this application $\calH$ will be the time-dependent advection-diffusion operator,
+
+\begin{equation}\label{eq:advection-diffusion}
+    \calH T(z) = \left[ \ddt - \ddz k_b \ddz + \dot{m}c_p \ddz \right]T(z),
+\end{equation}
+
+where
+
+\begin{description}[labelindent=1cm, labelwidth=1.2cm, before={\renewcommand\makelabel[1]{##1 $=$}}]
+    \item[$c_p$] specific heat capacity
+    \item[$k_b$] turbulent diffusion coefficient
+    \item[$\dot{m}$] mass flow rate
+\end{description}
+
+Similarly, cross-section temperature dependence may be treated using tabualted data or a general model accounting for material density, etc. For this application the temprature dependence of cross sections will be the model used in~\cite{adamowicz2023nilo},
+
+\begin{equation}\label{eq:temp-xs}
+    \Sigma_u(z) = \Sigma_{u, 0} + \Sigma_{u, 1, d}\left( \sqrt{T(z) + \kappa W h(z)} - \sqrt{T_{d, 0}} \right)  + \Sigma_{u, 1, b}\left(T(z) -T_0 \right)
+\end{equation}
+
+where $h(z)$ is the fission reaction rate $\sum_{g=1}^{N_g}\Sigma_{f, g}\phi_g$ and $\kappa, \Sigma_{u, 0}, \Sigma_{u, 1, d}, \Sigma_{u, 1, b}, T_{d, 0},$ and $T_0$ are material constants, defined for each neutron energy group $g$.
+
+The transport equation~\cref{eq:transport} and TH equation~\cref{eq:th} can be written in operator form as 
+
+\begin{equation}
+    \frac{\partial\vec{\psi}}{\partial t} + \calL[T]\vec{\psi} = \calS[T]\vec{\psi}
+\end{equation}
+
+\begin{equation}
+    \frac{\partial T}{\partial t} + \calH T = \calQ[T, \vec{\psi}]
+\end{equation}
+
+where $\calL$ represents streaming and collision, $\calS$ represents source from scatter, fission, and precursor decay, and $\calQ$ represents fission power $hW$.
+
+\Cref{eq:multiphysics,eq:advection-diffusion,eq:temp-xs} form a system of equations which are nonlinearly coupled and characterized by multiple time and length scales. The high dimensionality of \cref{eq:transport} largely determines the complexity of the problem.
+
+A standard approach to solving a coupled problem like this one would be Fixed-Point Iteration (FPI), in which an estimate $T^{(n)}$ is used to calculate $\psi^{(n+1)}$ using the transport equation. $\psi^{(n+1)}$ is then used to define the fission power distribution for a TH calculation which determines $T^{(n+1)}$. This procedure is repeated until convergence. FPI can converge very slowly in the case of tight coupling, and requires both a high-order transport calculation and a potentially costly TH calculation at each iteration.
+
+The problem may also be solved using Newton's method or Jacobian-free Newton-Krylov methods, which still require solution of the high-order transport equation at each iteration.
+
+The solution of the transport equation may be aided with a synthetic acceleration method, and the coupling may be aided using a low-order approximation of the TH operator. This is the basis of the NILO-CMFD method, which converges at a comparable rate to single-physics problems, and introduces no approximation to the final solution.
+
+The MNP method~\cite{tamang2014multilevel} uses the Quasidiffusion method to project the transport equation to the GLOQD equation, which depends only on space and time. The coupled system of the MLOQD equations, precursor balance, and TH is then solved with Newton iteration.
+
+
+\section{NILO-CMFD Method}\label{sec:NILO}
+
+The NILO-CMFD method is described in~\cite{adamowicz2023nilo} and~\cite{adamowicz2021nilo}. It describes the method only for one-group, steady-state transport (without delayed neutrons), but the method can be easily extended for time-dependent calculations, since backward Euler discretization yields an equivalent steady-state problem (with augmented absorption cross section and source).
+
+Each outer iteration of the CMFD-based methods consists of:
+
+\begin{enumerate}
+    \item High-Order transport sweep using $\Sigma(T^{(n)})$
+    \item Calculation of corrected diffusion coefficient
+    \item Low-order diffusion solve for $\phi^{(n+1)}$
+    \item TH solution for $T^{(n+1)}$
+\end{enumerate}
+
+The methods differ in how the Low-order diffusion equation is solved:
+
+\begin{itemize}
+    \item Fixed-point iteration solves the low-order equation using explicit cross sections (the same cross sections that were used for the high-order equation). FPI does not guarantee stability
+    \item R-CMFD uses a ``relaxed'' heat source, where $h = \Sigma_f (\alpha \phi^{(n+1)} + (1-\alpha)\phi^{(n)})$. R-CMFD converges more slowly than FPI and may still be unstable for optically thick media.
+    \item X-CMFD uses implicitly evaluated cross sections, requiring another level of FPI (or Newton's method) to solve the coupled system of the low-order diffusion equation and the TH equation. The method is stable, and converges at a rate comparable to single-physics transport, but the method requires multiple inversions of the TH operator $\calH$ in each outer iteration.
+\end{itemize}
+
+\subsection{FPI-CMFD}
+
+\subsection{R-CMFD}
+
+\subsection{X-CMFD}
+
+\subsection{NILO-CMFD}
+
+\section{MNP Method}\label{sec:MNP}
+
+\section{NILO-MNP Method Derivation}\label{sec:derivation}
+
+
+\section{Preliminary and expected results}
+
+\bibliographystyle{ieeetr}
+\bibliography{references}
+
+\end{document}
