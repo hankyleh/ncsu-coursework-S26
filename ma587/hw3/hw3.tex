@@ -1,0 +1,279 @@
+\documentclass{hw-template}
+\title{MA587 HW 3}
+\author{Kyle Hansen}
+\date{31 March 2026}
+
+\usepackage{cancel}
+
+\newcommand{\p}{^\prime}
+\newcommand{\pr}{\prime}
+\newcommand{\intI}{\int\limits_{I}}
+\newcommand{\intOm}{\int_{\Omega}}
+\newcommand{\hlin}{{H_0^1}}
+\newcommand{\hOne}{{H^1}}
+\newcommand{\ltwo}{{L^2}}
+\newcommand{\htwo}{{H^2}}
+
+
+\begin{document}
+\maketitle
+
+\section{Second order Problem}
+
+\subsection{}
+
+First, the differential equation is multiplied by test vector $v \in V$ and integrated over the domain,
+
+\begin{equation}
+    -\int_{0}^1 u^{\pr\pr}v dx = \int_{0}^1 f v dx
+\end{equation}
+
+Gauss Divergence theorem is used to reduce the left-hand side,
+
+\begin{equation}
+    - \left[ \cancelto{_{v(0) = v(1) = 0}}{u'v \Big|_{0}^1} - \int_{0}^1 u\p v\p dx \right]= \int_{0}^1 f v dx
+\end{equation}
+
+which yields the final weak form,
+
+\begin{align}
+    a(u, v) &= L(v)\; \forall v \in V\\
+    a(u, v) &= \int_{0}^1 u\p v\p dx\\
+    L(v) &= \int_{0}^1 f v dx
+\end{align}
+
+\subsection{}
+
+To show that $a$ is symmetric, note that the multiplication inside the integral is commutative, so
+
+\begin{equation}
+    a(u, v) = \int_{0}^1 u\p v\p dx = \int_{0}^1 v\p u\p dx = a(v, u)
+\end{equation}
+
+and thus $a$ is symmetric. To show that $a$ is continuous, first note that
+
+\begin{align}
+    \norm{u}_{\hlin}^2 &= \norm{u}_{\ltwo}^2 + \norm{u\p}_{\ltwo}^2\\
+    \norm{u\p}_{\ltwo}^2 &\leq \norm{u}_{\hlin}^2\\
+    \norm{u\p}_{\ltwo} &\leq \norm{u}_{\hlin}\label{eq:p1-lemma}
+\end{align}
+
+and also
+
+\begin{equation}
+    \norm{u}_{\ltwo} \leq \norm{u}_{\hlin}.\label{eq:p1-lemma2}
+\end{equation}
+
+By the Cauchy-Schwarz (CS) inequality, 
+
+\begin{equation}
+    \int_0^1 u\p v\p dx = \ip{u\p}{v\p}_{\ltwo} \leq \norm{u\p}_{\ltwo} \norm{v\p}_{\ltwo},
+\end{equation}
+
+and thus, using \autoref{eq:p1-lemma}, \
+
+\begin{equation}
+    \int_0^1 u\p v\p dx \leq \norm{u}_{\hlin} \norm{v}_{\hlin},
+\end{equation}
+
+and $a$ is continuous. To show $L(v)$ is continuous, apply the CS inequality,
+
+\begin{equation}
+    \int_0^1 fv dx = \ip{f}{v}_{\ltwo} \leq \norm{f}_\ltwo \norm{v}_\ltwo
+\end{equation}
+
+and apply \autoref{eq:p1-lemma2},
+
+\begin{equation}
+    \int_0^1 fv dx \leq \norm{f}_\ltwo \norm{v}_\hlin.
+\end{equation}
+
+
+\subsection{}
+
+To show that $a$ is coercive, consider that
+
+\begin{align}
+    |v(x)| &= \left|\cancel{v(0)} + \int_0^x v\p (s) ds \right|\\
+    |v(x)| &\leq \int_0^1 |v\p (s)| ds = \ip{1}{v\p}_\ltwo.
+\end{align}
+
+Then, using the CS inequality,
+
+\begin{align}
+    |v(x)| &\leq \norm{1}_\ltwo \norm{v\p}_\ltwo\\
+    \norm{v(x)}_\ltwo &\leq \norm{(\norm{v\p}_\ltwo)}_\ltwo\\
+    \norm{v(x)}_\ltwo &\leq \norm{v\p}_\ltwo
+\end{align}
+
+\subsection{}
+
+% TODO fenicxs problem
+
+\section{Poincare Inequality}
+
+\subsection{}
+
+Similarly to the previous problem, and using the notation $x_1 = x, x_2 =$
+
+\begin{align}
+    v(x, y) &= \cancel{v(0, y)} + \int_0^x \frac{\partial v(s, y)}{\partial x} ds\\
+    v(x, y)^2 &= \left(\int_0^x \frac{\partial v(s, y)}{\partial x} ds \right)^2.
+\end{align}
+
+Then, by the CS inequality,
+
+\begin{equation}
+    v(x, y)^2 \leq \int_0^x \left({\frac{\partial v(s, y)}{\partial x}}\right)^2 ds.
+\end{equation}
+
+Since the term inside the integral is strictly non-negative, 
+
+\begin{equation}
+    v(x, y)^2 \leq \int_0^1 \left({\frac{\partial v(s, y)}{\partial x}}\right)^2 ds.
+\end{equation}
+
+Then, since $\norm{\nabla v}^2 = \left(\frac{\partial v}{\partial x} \right)^2 + \left(\frac{\partial v}{\partial y} \right)^2$ and thus $\frac{\partial v}{\partial x}^2 \leq \norm{\nabla v}^2$,
+
+\begin{equation}
+    v(x, y)^2 \leq \int_0^1  \norm{\nabla v}^2   dx.
+\end{equation}
+
+Integrating this once more over the domain,
+
+\begin{equation}
+    \int_0^1 v(x, y)^2 \leq \int_0^1\int_0^1  \norm{\nabla v}^2   dx dx
+\end{equation}
+
+\begin{equation}
+    \int_0^1 v(x, y)^2 \leq \int_0^1  \norm{\nabla v}^2   dx.
+\end{equation}
+
+\subsection{}
+
+Note that $\norm{v}_\htwo^2 = \norm{v}_\ltwo^2 + \norm{\nabla v}_\ltwo^2 + \norm{\Delta v}_\ltwo^2$. Begining with the $\norm{v}_\ltwo^2$ term, as in the previous part,
+
+\begin{align}
+    v(x, y) &= \cancel{v_x(0, y)} + \int_0^x v_x(s, y)ds\\
+    v(x, y)^2 &=\left(\int_0^x v_x(s, y)ds\right)^2\label{eq:x-only}.
+\end{align}
+
+Similarly,
+
+\begin{equation}
+    v_x(s, y) = \cancel{v_x(x, 0)} + \int_0^y v_{xy}(s,q)dq,
+\end{equation}
+
+so, plugging this into \autoref{eq:x-only},
+
+\begin{equation}
+    v(x, y)^2 = \left(\int_0^x \int_0^y v_{xy}(s,q)ds \, dq \right)^2
+\end{equation}
+
+Applying the CS inequality twice,
+
+\begin{equation}
+    v(x, y)^2 \leq \int_0^x \int_0^y v_{xy}(s,q)^2 ds \, dq.
+\end{equation}
+
+Since the term inside the integral is strictly non-negative,
+
+\begin{equation}
+    v(x, y)^2 \leq \int_0^\Gamma \int_0^\Gamma v_{xy}(x, y)^2 dx \, dy.
+\end{equation}
+
+where $\Gamma$ is the length of the square. Applying Green's formula and using the boundary conditions,
+
+\begin{equation}
+    v(x, y)^2 \leq \intOm v_{xx}v_{yy}d\mu \leq \intOm |v_{xx}||v_{yy}|d\mu.
+\end{equation}
+
+Since 
+
+\begin{equation}
+    |\Delta v|^2 = |v_{xx}|^2 + 2 |v_{xx}| |v_{yy}| + |v_{yy}|^2,\label{eq:expansion}
+\end{equation}
+
+and thus $|v_{xx}| |v_{yy}| \leq \frac{1}{2}|\Delta v|^2$,
+
+\begin{equation}
+    v(x, y)^2 \leq \frac{1}{2} \intOm |\Delta v|^2 d\mu.
+\end{equation}
+
+Integrating over the domain yields
+
+\begin{equation}
+    \intOm v(x, y)^2 d \mu \leq \frac{1}{2} \Gamma^2\intOm |\Delta v|^2 d\mu,\label{eq:first-inequality}
+\end{equation}
+
+where again $\Gamma$ is the length of the square. Next, to show the inequality for $\norm{\nabla v}_\ltwo^2$, again apply the expansion in \autoref{eq:expansion},
+
+\begin{equation}
+   |\nabla v|^2 = |v_{xx}|^2 + |v_{yy}|^2 \leq |\Delta v|^2,
+\end{equation}
+
+then integrate over the domain to yield
+
+\begin{equation}
+    \intOm |\nabla v|^2  d\mu \leq \intOm |\Delta v|^2  d\mu.\label{eq:second-inequality}
+\end{equation}
+
+Then, combining the inequalities \autoref{eq:first-inequality} and \autoref{eq:second-inequality},
+
+\begin{equation}
+    \norm{v}_\htwo = \norm{v}_\ltwo + \norm{\nabla v}_\ltwo + \norm{\Delta v}_\ltwo \leq \left(\Gamma^2 + 2 \right) \intOm |\Delta v|^2  d\mu.
+\end{equation}
+
+\section{Coercivity}
+
+\subsection{}
+
+Beginning with the differential form, multiply by $v \in \hOne$ and integrate over the domain,
+
+\begin{equation}
+    - \intOm \nabla^2 u \cdot v\, d\mu = \intOm fv d\mu
+\end{equation}
+
+then by the Gauss Divergence Theorem,
+
+\begin{equation}
+    - \left[-\intOm \nabla u \nabla v d\mu + \int_{\Gamma} (\nabla u \cdot \vec{n})v\, dS \right] = \intOm fv d\mu.
+\end{equation}
+
+Using the boundary condition to evaluate the second term,
+
+\begin{equation}
+    \intOm \nabla u \nabla v d\mu - \int_{\Gamma} (g - \gamma u)v\, dS= \intOm fv d\mu.
+\end{equation}
+
+By rearranging terms, the weak form is obtained,
+
+\begin{align}
+    a(u, v) &= L(v) \quad \forall v \in \hOne\\
+    a(u, v) &= \intOm \nabla u \nabla v d\mu + \gamma\int_{\Gamma}   uv\, dS\\
+    L(v) &= \intOm fv\, d\mu + \int_{\Gamma} gv \, dS.
+\end{align}
+
+\subsection{}
+
+To show that $a$ is symmetric, consider multaplicative commutativity (as with problem 1),
+
+\begin{equation}
+    a(u, v) = \intOm \nabla u \nabla v d\mu + \gamma\int_{\Gamma}   uv\, dS = \intOm \nabla v \nabla u d\mu + \gamma\int_{\Gamma}   vu\, dS = a(v, u).
+\end{equation}
+
+To show that $a$ is continuous, first note that 
+
+\begin{equation}
+    \norm{u}_\hOne^2 = \norm{u}_\ltwo^2 + \norm{\nabla u}_\ltwo^2.
+\end{equation}
+
+\subsection{}
+
+\section{Biharmonic Problem}
+
+\subsection{}
+
+\subsection{}
+
+\end{document}
