@@ -17,16 +17,39 @@
 
 \usepackage{cleveref}
 
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage{subcaption}
+\usepackage{mathtools}
+\newcommand*\Let[2]{\State{#1 $\gets$ #2}}
+\algrenewcommand\algorithmicrequire{\textbf{Input:}}
+\algrenewcommand\algorithmicensure{\textbf{Postcondition:}}
+
+\newcommand{\algorithmautorefname}{Algorithm}
 
 \begin{document}
 
 \maketitle
 % TODO write abstract
-% \begin{abstract}
-%     Abstract content
-% \end{abstract}
+\begin{abstract}
+    This report introduces the Nonlinearly Implicit Low-Order CMFD (NILO-CMFD) method and the Multilevel Nonlinear Projective (MNP) method for solving multiphysics problems involving coupled neutron transport and Thermal Hydraulics. Both methods could be applied to any TH solver, but the MNP method, like X-CMFD, requires repeated inversion of the TH operator, which may potentially very computationally expensive. For my NE511 computational project I propose a NILO-MNP method which combines the advantages of these existing methods.
+
+    For the project, I will at minimum implement the MNP method, and if time allows I will implement the NILO-MNP method, and perform Fourier stability analysis on both methods.
+\end{abstract}
 
 \section{Introduction}\label{sec:intro}
+
+The NILO-CMFD method uses nonlinear diffusion acceleration (NDA) with coarse-mesh finite difference (CMFD) to acclerate coupled transport and TH. It also uses an approximate TH operator within inner iterations to reduce computational cost without introducing approximation in the final result.
+
+The MNP method uses Multigroup and Grey Quasidiffusion to accelerate the same class of problems. In single-physics applications, Multilevel Quasidiffusion converges faster than NDA, but Fourier analysis has not been performed for the multiphysics case of MLQD.
+
+This report summarizes the NILO-CMFD and MNP methods for coupled transport and TH. For my NE511 computational project I plan to implement the MNP method, first in the steady-state case, then with time-dependence and delayed neutrons.
+
+The MNP method requires repeated evaluation of the full-order TH operator during inner iterations, which the NILO-CMFD method does not. If time allows, I would like to implement the MNP method using the same approximate TH operator in inner iterations.
+
+I also plan to perform Fourier stability analysis to determined expected rate of convergence of the MNP method.
+
+
 
 % TODO write introduction
 
@@ -140,28 +163,133 @@ Each outer iteration of the CMFD-based methods consists of:
     \item TH solution for $T^{(n+1)}$
 \end{enumerate}
 
-The methods differ in how the Low-order diffusion equation is solved:
+The methods differ in how the low-order diffusion equation is solved:
 
 \begin{itemize}
     \item Fixed-point iteration solves the low-order equation using explicit cross sections (the same cross sections that were used for the high-order equation). FPI does not guarantee stability
     \item R-CMFD uses a ``relaxed'' heat source, where $h = \Sigma_f (\alpha \phi^{(n+1)} + (1-\alpha)\phi^{(n)})$. R-CMFD converges more slowly than FPI and may still be unstable for optically thick media.
     \item X-CMFD uses implicitly evaluated cross sections, requiring another level of FPI (or Newton's method) to solve the coupled system of the low-order diffusion equation and the TH equation. The method is stable, and converges at a rate comparable to single-physics transport, but the method requires multiple inversions of the TH operator $\calH$ in each outer iteration.
+    \item NILO-CMFD uses an approximation of temperature in the X-CMFD's coupled system of equations: cross section temperature dependence is linearized about the cross section values from the beginning of the iteration, and an approximation to the TH operator $\calH$ is used. The method converges at nearly the same rate as X-CMFD at a reduced computational cost, and introduces no approximation in the result.
 \end{itemize}
-
-\subsection{FPI-CMFD}
-
-\subsection{R-CMFD}
-
-\subsection{X-CMFD}
 
 \subsection{NILO-CMFD}
 
+
+
+
+\begin{algorithm}
+\caption{NILO-CMFD}\label{alg:nilo-cmfd}
+  \begin{algorithmic}[0]
+    \Require{Initial iterates $T^{(0)}$ and $\phi^{(0)}$}
+    \Let{$\Sigma_u^{(0)}$}{$\Sigma_u(T^{(0)})$}
+    \Let{$n$}{0}
+    \While{$\norm{T^{(n+1)} - T^{(n)}}_{\infty}/\norm{T^{(n)}}_{\infty} > \epsilon_n$}
+        \State{Outer iterations;}
+        \State{Calculate $\phi^{(n+1/2)}$}\Comment{High-order transport sweep}
+        \State{TH calculation for $T^{(n+1/2)}$}
+        \State{Cross section evaluation for $\Sigma_u^{(n+1/2)}$}
+        \State{Cross section evaluation for $\dot{\Sigma}_u^{(n+1/2)}$}\Comment{Calculated numerically}
+        \Let{$s$}{0}
+        \While{$\norm{T^{(s+1)} - T^{(s)}}_{\infty}/\norm{T^{(s)}}_{\infty} > \epsilon_s$}\Comment{Or use `temperature update' convergence}
+            \Let{$s$}{$s+1$}
+            \State{Calculate $\phi^{(n+1, s+1)}$ using $\tilde{\Sigma}_u^{(n+1, s)}$}\Comment{Low-order (Corrected Diffusion)}
+            \State{Calculate approximate temperature update from $\tilde{\Sigma}^{(n+1, s)}\phi^{(n+1, s+1)} - \tilde{\Sigma}^{(n)}\phi^{(n)}$}
+            \State{Update cross sections $\tilde{\Sigma}^{(n+1, s+1)}$ from Taylor expansion}
+        \EndWhile{}
+        \Let{$\phi^{(n+1)}$}{$\phi^{(n+1, s+1)}$}
+        \State{Update temperatures using full-order HT operator}
+    \EndWhile{}
+  \end{algorithmic}
+\end{algorithm}
+
+Inside the inner iterations of the NILO-CMFD method, the implicit cross section temperature and flux dependence are estimated as a first-order Taylor expansion:
+
+\begin{align}
+    \Sigma_u^{(n+1)} &= \Sigma_u(T^{(n+1)}, f^{(n+1)})\\
+                    &= \Sigma_u\left(T^{(n)} + (T^{(n+1)} -T^{(n)}), f^{(n)} + (f^{(n+1)} - f^{(n)})\right)\\
+                    &\approx T^{(n)} + \frac{\partial \Sigma_u}{\partial T}^{(n)}(T^{(n+1)} -T^{(n)}) + \frac{\partial \Sigma_u}{\partial f}^{(n)}(f^{(n+1)} - f^{(n)}),
+\end{align}
+
+and $T^{(n+1)} - T^{(n)}$ is approximated using an approximate operator $H \approx \calH$:
+
+\begin{align}
+    \Sigma_u^{(n+1)} &\approx T^{(n)} + \begin{multlined}[t]
+        \frac{\partial \Sigma_u}{\partial T}^{(n)}\calH^{-1}W(\Sigma_f^{(n+1)} \phi^{(n+1)} - \Sigma_f^{(n)} \phi^{(n)}) \\
+        + \frac{\partial \Sigma_u}{\partial f}^{(n)}(\Sigma_f^{(n+1)} \phi^{(n+1)} - \Sigma_f^{(n)} \phi^{(n)})
+    \end{multlined}\\
+    &\approx T^{(n)} + \begin{multlined}[t]
+        \frac{\partial \Sigma_u}{\partial T}^{(n)}H^{-1}W(\Sigma_f^{(n+1)} \phi^{(n+1)} - \Sigma_f^{(n)} \phi^{(n)}) \\
+        + \frac{\partial \Sigma_u}{\partial f}^{(n)}(\Sigma_f^{(n+1)} \phi^{(n+1)} - \Sigma_f^{(n)} \phi^{(n)}).\end{multlined}\label{eq:xs-approx}
+\end{align}
+
+As the outer iterations converge, the term $(\Sigma_f^{(n+1)} \phi^{(n+1)} - \Sigma_f^{(n)} \phi^{(n)})$ goes to zero and thus there is no approximation in the final result. The approximate operator $H$ should be chosen such that that it is accurate when $T$ has weak spatial variation. \cite{adamowicz2021nilo} proposes $H$ to be the advection operator without diffusion.
+
+This method requires that
+
+\begin{itemize}
+    \item $\Sigma_f$ and $\phi$ must be stored from the previous iteration
+    \item Two additional cross section evalutations are performed for numerical differentiation
+\end{itemize}
+
+The NILO-CMFD algorithm for a steady-state problem (or a single time step of a time-dependent problem) is presented in \autoref{alg:nilo-cmfd}.
+
 \section{MNP Method}\label{sec:MNP}
 
-\section{NILO-MNP Method Derivation}\label{sec:derivation}
+A sketch of the Multilevel Nonlinear Projective method is presented in \autoref{alg:mnp}. The full algorithm is presented in~\cite{tamang2014multilevel}, which also gives the Multigroup Low-Order Quasidiffusion (MLOQD) and Grey LOQD (GLOQD) equations which are necessary for its implementation.
+
+\begin{algorithm}
+    \caption{MNP}\label{alg:mnp}
+    \begin{algorithmic}[0]
+        \Require{Initial iterates $T^{(0)}$ and $\phi^{(0)}$}
+        \Let{$n$}{$0$}
+        \While{$\norm{T^{(n+1)} - T^{(n)}}_{\infty}/\norm{T^{(n)}}_{\infty} > \epsilon_1$}
+            \State{Outer Iterations;}
+            \Let{$n$}{$n+1$}
+            \State{Calculate multigroup cross sections}
+            \State{Calculate effective grey cross sections}
+            \State{Calculate $\psi^{(n+1)}$ using $\phi^{(n)}$; iterate through groups only once}\Comment{High-order transport}
+            \State{Calculate $E_g^{(n+1)}$, $B_g^{(n+1)}$}
+            \Let{$s$}{$0$}
+            \While{$\norm{T^{(n, s+1)} - T^{(n, s)}}_{\infty}/\norm{T^{(n, s)}}_{\infty} > \epsilon_2$}
+                \State{Multigroup QD iterations;}
+                \Let{$s$}{$s+1$}
+                \State{Update cross sections, fission power source}
+                \State{Solve MLOQD equations for $\phi^{(n+1, s+1)}$ and $J^{(n+1, s+1)}$}
+                \State{Calcualte effective grey closure terms and cross sections}
+                \Let{$l$}{$0$}
+                \While{$\norm{T^{(n, s+1, l+1)} - T^{(n, s+1, l)}}_{\infty}/\norm{T^{(n, s+1, l)}}_{\infty} > \epsilon_3$}
+                    \State{Newton iterations;}
+                    \Let{$l$}{$l+1$}
+                    \State{Solve the system GLOQD, $\Sigma(T)$, and linearized full-order TH.}
+
+                \EndWhile{}
+
+            \EndWhile{}
+        \EndWhile{}
+    \end{algorithmic}
+\end{algorithm}
+
+% \section{NILO-MNP Method Derivation}\label{sec:derivation}
+
 
 
 \section{Preliminary and expected results}
+
+My implementation of the MNP method will use the Linear Discontinuous (LD) finite element discretization in 1D slab geometry, and finite volume discretization of the TH operator (for which I will use the advection-diffusion equation, as in~\cite{adamowicz2021nilo}).
+
+I have an LD transport solver which I can adapt to the high-order solver for this implementation; I expect to have that done this week. Afterwards, I will need to write the low-order solvers for MLOQD and GLOQD, and add a function for temperature-dependent cross section evaluations. The primary source of work for this early stage of implementation will be the finite volume advection-diffusion solver.
+
+Once I have all solvers in place, I will just need to configure them for each of the methods, which should not be a challenge, as they all use the same kernel. For the Newton iterations in the MNP method I will use Jacobian-free Newton-Krylov iteration, which will introduce another level of iteration to \autoref{alg:mnp}.
+
+A time-dependent transient benchmark is introduced in~\cite{tamang2014multilevel}, which I can compare my results to. If I implement both the MNP and NILO-MNP methods, I will record the number of each kind of iteration required (i.e. to count number of $n\times n$ linear solves required for each method) and residual histories for each method to show convergence rate.
+
+If I am able to perform Fourier stability analysis, the intended results are:
+
+\begin{itemize}
+    \item Region of stability for the NILO-MNP method
+    \item Spectral radii for FPI-MNP, MNP, and NILO-MNP methods
+\end{itemize}
+
 
 \bibliographystyle{ieeetr}
 \bibliography{references}
