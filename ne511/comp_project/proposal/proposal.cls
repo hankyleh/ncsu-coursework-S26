@@ -25,7 +25,7 @@
 \setlength{\parindent}{0em}
 \setlength{\parskip}{1ex}
 % ~~~ declaration of options ~~~~~~~~~
-\renewcommand\thesubsection{\thesection (\alph{subsection})}
+% \renewcommand\thesubsection{\thesection (\alph{subsection})}
 % \titleformat{\section}{\normalfont\Large\bfseries}{\thesection}{2ex}{}
 % \titleformat{\subsection}[runin]{\normalfont\large\bfseries}{\newline\newline\hspace{2em}\thesubsection}{1ex}{}[\setlength{\parindent}{2em}]
 

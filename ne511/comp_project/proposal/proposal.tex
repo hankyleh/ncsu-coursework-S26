@@ -14,13 +14,14 @@
 \newcommand{\ra}{\rightarrow}
 \newcommand{\qqquad}{\hskip 3em\relax}
 \newcommand{\T}[1]{\text{{#1}}}
-
+\newcommand{\p}{^\prime}
 \usepackage{cleveref}
 
 \usepackage{algpseudocode}
 \usepackage{algorithm}
 \usepackage{subcaption}
 \usepackage{mathtools}
+\usepackage{amssymb}
 \newcommand*\Let[2]{\State{#1 $\gets$ #2}}
 \algrenewcommand\algorithmicrequire{\textbf{Input:}}
 \algrenewcommand\algorithmicensure{\textbf{Postcondition:}}
@@ -53,39 +54,36 @@ I also plan to perform Fourier stability analysis to determined expected rate of
 
 % TODO write introduction
 
-\section{Problem Statement}\label{sec:statement}
+\subsection{Problem Statement}\label{sec:statement}
 
-The system of equations for 1D time-dependent multigroup neutron transport with delayed neutron precursors and thermal-hydraulic (TH) feedback is
+The multigroup neutron transport equation in one spatial dimension with isotropic scattering is
 
-\begin{subequations}\label{eq:multiphysics}
-    \begin{multline}\label{eq:transport}
+\begin{subequations}\label{eq:transport}
+    \begin{multline}
         \left[\frac{1}{v_g}\ddt + \mu \ddz + \Sigma_t(z)  \right]\psi_g(z, \mu, t) \\
-        = (1-\beta)\frac{\chi_{g}^p(z, t)}{2}\sum_{g^\prime=1}^{N_g}\nu_{g}(z)\Sigma_{f, g^\prime}(z)\phi_{g^\prime}(z, t)  + \frac{1}{2}\sum_{g^\prime = 1}^{N_g}\Sigma_{s, g^\prime \ra g}(z)\phi_{g^\prime}(z, t) \\
-        + \frac{1}{2}\sum_{k=1}^{6}\lambda_k \chi_{g, k}^d(z, t)C_k(z, t) + q_{g}(z, \mu, t),\\
+        = \frac{\chi_{g}^p(z, t)}{2}\sum_{g^\prime=1}^{N_g}(1-\beta_{g\p})\nu_{g}(z)\Sigma_{f, g^\prime}(z)\phi_{g^\prime}(z, t)  + \frac{1}{2}\sum_{g^\prime = 1}^{N_g}\Sigma_{s, g^\prime \ra g}(z)\phi_{g^\prime}(z, t) \\
+        + \frac{1}{2}\sum_{k=1}^{6}\lambda_k \chi_{g, k}^d(z, t)C^d_k(z, t) + q_{g}(z, \mu, t),\\
          g=1,\dots,N_g, \, 0\leq z \leq Z,\, -1 \leq \mu \leq 1, \, t>0
     \end{multline}
     \begin{gather}
         \psi_g(z,\mu, 0) = \psi^0,\\
-        \psi_g(0,\mu, t) = \psi_{in,g, 0},\,\mu>0\qquad \psi_g(Z, \mu, t) = \psi_{in, g, Z},\,\mu<0
+        \psi_g(0,\mu, t) = \psi_{in,g, 0},\,\mu>0\qquad \psi_g(Z, \mu, t) = \psi_{in, g, Z},\,\mu<0,
     \end{gather}
-       \begin{equation}
-        \ddt C_k(z, t) = -\lambda_k C_k(z, t) + \sum_{g = 1}^{N_g}\beta_{k, g}(z, t)\nu_{g}\Sigma_{f, g}(z)\phi_g(z, t), \qquad k = 1, \dots, 6
-    \end{equation}
-    \begin{equation}
-        C_k(z, 0) = C_k^0, \qquad k=1, \dots, 6
-    \end{equation}
-    \begin{equation}
-        \phi_g(z, t) = \int_{-1}^{1}d\mu\,\psi_g(z, \mu, t),
-    \end{equation}
-    \begin{equation}\label{eq:th}
-        \calH T(z, t) = W\sum_{g=1}^{N_g}\Sigma_{f, g}(z)\phi_g(z, t),
-    \end{equation}
-    \begin{equation}
-        T(z, 0) = T^0,
-    \end{equation}
 \end{subequations}
 
-where
+where the scalar flux is
+
+\begin{equation}
+    \phi_g(z, t) = \int_{-1}^{1}d\mu\,\psi_g(z, \mu, t).
+\end{equation}
+
+and the cross-sections are temperature- and power-dependent,
+
+\begin{equation}\label{eq:xs-temperature-general}
+    \Sigma_u(z) = \Sigma_u\left(T(z, t), h(z, t) \right),
+\end{equation}
+
+and
 
 \begin{description}[labelindent=1cm, labelwidth=1.2cm, before={\renewcommand\makelabel[1]{##1 $=$}}]
     \item[$z$] spatial position
@@ -98,12 +96,97 @@ where
     \item[$\nu_g$] fission multiplicity in group $g$
     \item[$\chi_g^p$] prompt neutron energy emission spectrum
     \item[$\chi_{g, k}^d$] delayed neutron energy emission spectrum from precursor group $k$
-    \item[$\beta$] delayed neutron fraction
-    \item[$C_k$] precursor population of group $k$
-    \item[$\lambda_k$] average precursor decay constant of group $k$
+    \item[$\beta_g$] delayed neutron fraction in group $g$
+    \item[$C^d_k$] delayed neutron precursor population, group $k$
+    \item[$\lambda_k$] group-averaged precursor decay constant, group $k$
     \item[$T$] temperature
+    \item[$h$] fission reaction rate $\sum_g \Sigma_{f, g} \phi_g$
+\end{description}
+
+
+
+The delayed neutron precursors are governed by the equations
+
+\begin{subequations}\label{eq:precursor-balance}
+    \begin{equation}
+        \ddt C^d_k(z, t) = -\lambda_k C^d_k(z, t) + \sum_{g = 1}^{N_g}\beta_{k, g}(z, t)\nu_{g}\Sigma_{f, g}(z)\phi_g(z, t), \qquad k = 1, \dots, 6
+    \end{equation}
+    \begin{equation}
+        C^d_k(z, 0) = C_k^{d, 0}, \qquad k=1, \dots, 6
+    \end{equation}
+\end{subequations}
+
+where $\beta_{k, g}$ is the delayed neutron fraction of precursor group $k$ in energy group $g$.
+
+Heat transfer is governed by the general equation
+
+\begin{subequations}\label{eq:th-general}
+    \begin{equation}
+        \calH T(z, t) = W\sum_{g=1}^{N_g}\Sigma_{f, g}(z)\phi_g(z, t),
+    \end{equation}
+    \begin{equation}
+        T(z, 0) = T^0,
+    \end{equation}
+\end{subequations}
+
+where
+\begin{description}[labelindent=1cm, labelwidth=1.2cm, before={\renewcommand\makelabel[1]{##1 $=$}}]
     \item[$W$] energy released per fission
 \end{description}
+
+
+
+\Cref{eq:transport,eq:xs-temperature-general,eq:precursor-balance,eq:th-general} form a system of equations which are nonlinearly coupled and are characterized by multiple time and length scales. The high dimensionality of \Cref{eq:transport} largely determines the complexity of the problem.
+
+In operator form, the transport equation is
+
+\begin{equation}
+    \frac{\partial\vec{\psi}}{\partial t} + \calL[T]\vec{\psi} = \calS[T]\vec{\psi}
+\end{equation}
+
+and the TH equation is
+
+\begin{equation}
+    \frac{\partial T}{\partial t} + \calH T = \calQ[T, \vec{\psi}]
+\end{equation}
+
+where $\calL$ represents streaming and collision, $\calS$ represents source from scatter, fission, and precursor decay, and $\calQ$ represents fission power $hW$.
+
+Backward euler time discretization produces an effective steady-state equation at each time step, with augmented cross section and source. The effective steady-state equations for time step $j$ can be written
+
+\begin{equation}
+    \tilde{\calL}^j[T^j]\vec{\psi}^j = \tilde{\calS}^j[T^j]\vec{\psi}^j
+\end{equation}
+
+\begin{equation}
+     \tilde{\calH}^j T^j = \tilde{\calQ}^j[T^j, \vec{\psi}^j]
+\end{equation}
+
+where 
+
+\begin{equation}
+    \vec{\psi} = \left[\psi_1, \dots, \psi_g, \dots, \psi_G \right]^\intercal
+\end{equation}
+
+
+
+
+A standard approach to solving a coupled problem like this one would be Fixed-Point Iteration (FPI), in which an estimate $T^{(n)}$ is used to calculate $\psi^{(n+1)}$ using the transport equation. $\psi^{(n+1)}$ is then used to define the fission power distribution for a TH calculation which determines $T^{(n+1)}$. This procedure is repeated until convergence. FPI can converge very slowly in the case of tight coupling, and requires both a high-order transport calculation and a potentially costly TH calculation at each iteration.
+
+The problem may also be solved using Newton's method or Jacobian-free Newton-Krylov methods, which still require solution of the high-order transport equation at each iteration.
+The solution of the transport equation may be aided with a synthetic acceleration method, and the coupling may be aided using a low-order approximation of the TH operator. This is the basis of the NILO-CMFD method, which converges at a comparable rate to single-physics problems, and introduces no approximation to the final solution.
+
+The MNP method~\cite{tamang2014multilevel} uses the Quasidiffusion method to project the transport equation to the GLOQD equation, which depends only on space and time. The coupled system of the MLOQD equations, precursor balance, and TH is then solved with Newton iteration.
+
+
+
+
+
+
+
+
+\subsection{TH equations}
+
 
 The TH operator $\calH$ can be treated using any TH code, but for this application $\calH$ will be the time-dependent advection-diffusion operator,
 
@@ -119,45 +202,42 @@ where
     \item[$\dot{m}$] mass flow rate
 \end{description}
 
-Similarly, cross-section temperature dependence may be treated using tabualted data or a general model accounting for material density, etc. For this application the temprature dependence of cross sections will be the model used in~\cite{adamowicz2023nilo},
+Cross section temperature dependence can be general (or even performed using table lookup) but for this application the temprature dependence of cross sections will be the model used in~\cite{adamowicz2023nilo},
 
 \begin{equation}\label{eq:temp-xs}
     \Sigma_u(z) = \Sigma_{u, 0} + \Sigma_{u, 1, d}\left( \sqrt{T(z) + \kappa W h(z)} - \sqrt{T_{d, 0}} \right)  + \Sigma_{u, 1, b}\left(T(z) -T_0 \right)
 \end{equation}
 
-where $h(z)$ is the fission reaction rate $\sum_{g=1}^{N_g}\Sigma_{f, g}\phi_g$ and $\kappa, \Sigma_{u, 0}, \Sigma_{u, 1, d}, \Sigma_{u, 1, b}, T_{d, 0},$ and $T_0$ are material constants, defined for each neutron energy group $g$.
+where  $\kappa, \Sigma_{u, 0}, \Sigma_{u, 1, d}, \Sigma_{u, 1, b}, T_{d, 0},$ and $T_0$ are material constants, defined for each neutron energy group $g$.
 
-The transport equation~\cref{eq:transport} and TH equation~\cref{eq:th} can be written in operator form as 
 
-\begin{equation}
-    \frac{\partial\vec{\psi}}{\partial t} + \calL[T]\vec{\psi} = \calS[T]\vec{\psi}
-\end{equation}
 
-\begin{equation}
-    \frac{\partial T}{\partial t} + \calH T = \calQ[T, \vec{\psi}]
-\end{equation}
 
-where $\calL$ represents streaming and collision, $\calS$ represents source from scatter, fission, and precursor decay, and $\calQ$ represents fission power $hW$.
 
-\Cref{eq:multiphysics,eq:advection-diffusion,eq:temp-xs} form a system of equations which are nonlinearly coupled and characterized by multiple time and length scales. The high dimensionality of \cref{eq:transport} largely determines the complexity of the problem.
 
-A standard approach to solving a coupled problem like this one would be Fixed-Point Iteration (FPI), in which an estimate $T^{(n)}$ is used to calculate $\psi^{(n+1)}$ using the transport equation. $\psi^{(n+1)}$ is then used to define the fission power distribution for a TH calculation which determines $T^{(n+1)}$. This procedure is repeated until convergence. FPI can converge very slowly in the case of tight coupling, and requires both a high-order transport calculation and a potentially costly TH calculation at each iteration.
+\subsection{Indices and Notation}
 
-The problem may also be solved using Newton's method or Jacobian-free Newton-Krylov methods, which still require solution of the high-order transport equation at each iteration.
+The following notation will be adopted for this project:
 
-The solution of the transport equation may be aided with a synthetic acceleration method, and the coupling may be aided using a low-order approximation of the TH operator. This is the basis of the NILO-CMFD method, which converges at a comparable rate to single-physics problems, and introduces no approximation to the final solution.
-
-The MNP method~\cite{tamang2014multilevel} uses the Quasidiffusion method to project the transport equation to the GLOQD equation, which depends only on space and time. The coupled system of the MLOQD equations, precursor balance, and TH is then solved with Newton iteration.
+\begin{description}[labelindent=1cm, labelwidth=1.2cm, before={\renewcommand\makelabel[1]{##1 $=$}}]
+    \item[$j$] time index
+    \item[$m$] angular index for method of discrete ordinates
+    \item[$k$] delayed neutron precursor group
+    \item[$g$] neutron energy group  
+    \item[$n, s, l, r$] iterative index: outermost, \dots, innermost
+    \item[$i$] spatial cell index\
+    \item[$u$] reaction index for cross sections
+\end{description}
 
 
 \section{NILO-CMFD Method}\label{sec:NILO}
 
-The NILO-CMFD method is described in~\cite{adamowicz2023nilo} and~\cite{adamowicz2021nilo}. It describes the method only for one-group, steady-state transport (without delayed neutrons), but the method can be easily extended for time-dependent calculations, since backward Euler discretization yields an equivalent steady-state problem (with augmented absorption cross section and source).
+The NILO-CMFD method is described in~\cite{adamowicz2023nilo} and~\cite{adamowicz2021nilo}, which describes five methods, FPI-CMFD, R-CMFD, X-CMFD, and two versions of NILO-CMFD.
 
-Each outer iteration of the CMFD-based methods consists of:
+Each outer ($n$) iteration of the CMFD-based methods consists of:
 
 \begin{enumerate}
-    \item High-Order transport sweep using $\Sigma(T^{(n)})$
+    \item High-Order transport sweep using $\Sigma_u(T^{(n)})$
     \item Calculation of corrected diffusion coefficient
     \item Low-order diffusion solve for $\phi^{(n+1)}$
     \item TH solution for $T^{(n+1)}$
@@ -166,13 +246,75 @@ Each outer iteration of the CMFD-based methods consists of:
 The methods differ in how the low-order diffusion equation is solved:
 
 \begin{itemize}
-    \item Fixed-point iteration solves the low-order equation using explicit cross sections (the same cross sections that were used for the high-order equation). FPI does not guarantee stability
-    \item R-CMFD uses a ``relaxed'' heat source, where $h = \Sigma_f (\alpha \phi^{(n+1)} + (1-\alpha)\phi^{(n)})$. R-CMFD converges more slowly than FPI and may still be unstable for optically thick media.
-    \item X-CMFD uses implicitly evaluated cross sections, requiring another level of FPI (or Newton's method) to solve the coupled system of the low-order diffusion equation and the TH equation. The method is stable, and converges at a rate comparable to single-physics transport, but the method requires multiple inversions of the TH operator $\calH$ in each outer iteration.
+    \item Fixed-point iteration solves the low-order equation using explicit cross sections (the same cross sections that were used for the high-order equation). FPI can be unstable.
+    \item R-CMFD is similar to FPI-CMFD, but uses a ``relaxed'' heat source in the TH calculation, where $h = \Sigma_f (\alpha \phi^{(n+1)} + (1-\alpha)\phi^{(n)})$. R-CMFD converges more slowly than FPI and may still be unstable for optically thick media.
+    \item X-CMFD uses implicitly evaluated cross sections, requiring another iterative level, or Newton's method, to solve the coupled system of low-order diffusion and TH. The method is stable, and outer iterations converge at a rate comparable to single-physics transport, but the method requires multiple inversions of the TH operator $\calH$ within each outer iteration.
     \item NILO-CMFD uses an approximation of temperature in the X-CMFD's coupled system of equations: cross section temperature dependence is linearized about the cross section values from the beginning of the iteration, and an approximation to the TH operator $\calH$ is used. The method converges at nearly the same rate as X-CMFD at a reduced computational cost, and introduces no approximation in the result.
+    \begin{itemize}
+        \item The method can also be applied without approximating the cross section evaluation. This method is called NILO-CMFD-A in \cite{adamowicz2023nilo}.
+    \end{itemize}
 \end{itemize}
 
-\subsection{NILO-CMFD}
+
+First, \Cref{eq:transport} is solved for $\vec{\psi}$, which is used to determine the corrected diffusion coefficients $\hat{D}_g$, and another cross section evaluation is performed. The coupled system of low-order corrected diffusion and TH is then solved,
+
+\begin{subequations}
+    \begin{equation}
+        -\frac{d}{dz} D^{(n)}(z)\frac{d\phi^{(n+1)}}{dz} + \left(\tilde{\Sigma}_a^{(n+1)}(z)+\hat{D}^{(n+1)}(z) \right)\phi^{(n+1)}(z) = \nu\tilde{\Sigma}_f^{(n+1)}(z)\phi^{(n+1)}(z),
+    \end{equation}
+    \begin{equation}
+        \calH T^{(n+1)}(z) = W\tilde{\Sigma}_f^{(n+1)}\phi^{(n+1)}(z)
+    \end{equation}
+\end{subequations}
+
+
+Where the cross section dependence on temperature and flux are approximated by a first-order Taylor expansion,
+
+\begin{align}
+    \Sigma_u^{(n+1)} &= \Sigma_u(T^{(n+1)}, h^{(n+1)})\\
+                    &= \Sigma_u\left(T^{(n)} + (T^{(n+1)} -T^{(n)}), h^{(n)} + (h^{(n+1)} - h^{(n)})\right)\\
+                    &\approx T^{(n)} + \frac{\partial \Sigma_u}{\partial T}^{(n)}(T^{(n+1)} -T^{(n)}) + \frac{\partial \Sigma_u}{\partial h}^{(n)}(h^{(n+1)} - h^{(n)}),
+\end{align}
+
+and $T^{(n+1)} - T^{(n)}$ is approximated using an approximate operator $H \approx \calH$:
+
+\begin{align}
+    \Sigma_u^{(n+1)} &\approx \Sigma_u^{(n)} + \begin{multlined}[t]
+        \frac{\partial \Sigma_u}{\partial T}^{(n)}\calH^{-1}W(\Sigma_f^{(n+1)} \phi^{(n+1)} - \Sigma_f^{(n)} \phi^{(n)}) \\
+        + \frac{\partial \Sigma_u}{\partial h}^{(n)}(\Sigma_f^{(n+1)} \phi^{(n+1)} - \Sigma_f^{(n)} \phi^{(n)})
+    \end{multlined}\\
+    &\approx \Sigma_u^{(n)} + \begin{multlined}[t]
+        \frac{\partial \Sigma_u}{\partial T}^{(n)}H^{-1}W(\Sigma_f^{(n+1)} \phi^{(n+1)} - \Sigma_f^{(n)} \phi^{(n)}) \\
+        + \frac{\partial \Sigma_u}{\partial h}^{(n)}(\Sigma_f^{(n+1)} \phi^{(n+1)} - \Sigma_f^{(n)} \phi^{(n)}).\end{multlined}\label{eq:xs-approx}
+\end{align}
+
+As the outer iterations converge, the term $(\Sigma_f^{(n+1)} \phi^{(n+1)} - \Sigma_f^{(n)} \phi^{(n)})$ goes to zero and thus there is no approximation in the final result. The approximate operator $H$ should be chosen such that that it is accurate when $T$ has weak spatial variation. \cite{adamowicz2021nilo} proposes $H$ to be the advection operator without diffusion.
+
+This method requires that
+
+\begin{itemize}
+    \item $\Sigma_f^{(n)}$ and $\phi^{(n)}$ must be stored from the previous outer iteration
+    \item One additional cross section evalutation is performed for numerical differentiation
+\end{itemize}
+
+The cross section derivatives can be approximated using
+
+\begin{gather}
+    \dot{\Sigma}_{u, T}^{(n)} = \left.\frac{\partial \Sigma_u}{\partial T}\right|_{T=T^{(n)}} \approx \frac{\Sigma_u(T^{(n)}(1+\epsilon_T)) - \Sigma_u(T^{(n)})}{\epsilon_T T^{(n)}}\\
+    \dot{\Sigma}_{u, f}^{(n)} = \left.\frac{\partial \Sigma_u}{\partial f}\right|_{f=f^{(n)}} \approx \frac{\Sigma_u(f^{(n)}(1+\epsilon_f)) - \Sigma_u(f^{(n)})}{\epsilon_f f^{(n)}}.
+\end{gather}
+
+Thus, the cross-section approximation for the coupled low-order system in the NILO-CMFD method is
+
+\begin{equation}
+    \tilde{\Sigma}_u^{(n+1)} = T^{(n)} + \begin{multlined}[t]
+        \dot{\Sigma}_{u, T}^{(n)}H^{-1}W(\Sigma_f^{(n+1)} \phi^{(n+1)} - \Sigma_f^{(n)} \phi^{(n)}) \\
+        + \dot{\Sigma}_{u, f}^{(n)}(\Sigma_f^{(n+1)} \phi^{(n+1)} - \Sigma_f^{(n)} \phi^{(n)}).\end{multlined}\label{eq:xs-approx}
+\end{equation}
+
+After the coupled system has been solved, the full-order TH equation is solved to determine $T^{(n+1)}$.
+
+The NILO-CMFD algorithm for a steady-state problem (or a single time step of a time-dependent problem) is presented in \autoref{alg:nilo-cmfd}.
 
 
 
@@ -190,7 +332,7 @@ The methods differ in how the low-order diffusion equation is solved:
         \State{Cross section evaluation for $\Sigma_u^{(n+1/2)}$}
         \State{Cross section evaluation for $\dot{\Sigma}_u^{(n+1/2)}$}\Comment{Calculated numerically}
         \Let{$s$}{0}
-        \While{$\norm{T^{(s+1)} - T^{(s)}}_{\infty}/\norm{T^{(s)}}_{\infty} > \epsilon_s$}\Comment{Or use `temperature update' convergence}
+        \While{$\norm{T^{(s+1)} - T^{(s)}}_{\infty}/\norm{T^{(s)}}_{\infty} > \epsilon_s$}
             \Let{$s$}{$s+1$}
             \State{Calculate $\phi^{(n+1, s+1)}$ using $\tilde{\Sigma}_u^{(n+1, s)}$}\Comment{Low-order (Corrected Diffusion)}
             \State{Calculate approximate temperature update from $\tilde{\Sigma}^{(n+1, s)}\phi^{(n+1, s+1)} - \tilde{\Sigma}^{(n)}\phi^{(n)}$}
@@ -202,38 +344,58 @@ The methods differ in how the low-order diffusion equation is solved:
   \end{algorithmic}
 \end{algorithm}
 
-Inside the inner iterations of the NILO-CMFD method, the implicit cross section temperature and flux dependence are estimated as a first-order Taylor expansion:
-
-\begin{align}
-    \Sigma_u^{(n+1)} &= \Sigma_u(T^{(n+1)}, f^{(n+1)})\\
-                    &= \Sigma_u\left(T^{(n)} + (T^{(n+1)} -T^{(n)}), f^{(n)} + (f^{(n+1)} - f^{(n)})\right)\\
-                    &\approx T^{(n)} + \frac{\partial \Sigma_u}{\partial T}^{(n)}(T^{(n+1)} -T^{(n)}) + \frac{\partial \Sigma_u}{\partial f}^{(n)}(f^{(n+1)} - f^{(n)}),
-\end{align}
-
-and $T^{(n+1)} - T^{(n)}$ is approximated using an approximate operator $H \approx \calH$:
-
-\begin{align}
-    \Sigma_u^{(n+1)} &\approx T^{(n)} + \begin{multlined}[t]
-        \frac{\partial \Sigma_u}{\partial T}^{(n)}\calH^{-1}W(\Sigma_f^{(n+1)} \phi^{(n+1)} - \Sigma_f^{(n)} \phi^{(n)}) \\
-        + \frac{\partial \Sigma_u}{\partial f}^{(n)}(\Sigma_f^{(n+1)} \phi^{(n+1)} - \Sigma_f^{(n)} \phi^{(n)})
-    \end{multlined}\\
-    &\approx T^{(n)} + \begin{multlined}[t]
-        \frac{\partial \Sigma_u}{\partial T}^{(n)}H^{-1}W(\Sigma_f^{(n+1)} \phi^{(n+1)} - \Sigma_f^{(n)} \phi^{(n)}) \\
-        + \frac{\partial \Sigma_u}{\partial f}^{(n)}(\Sigma_f^{(n+1)} \phi^{(n+1)} - \Sigma_f^{(n)} \phi^{(n)}).\end{multlined}\label{eq:xs-approx}
-\end{align}
-
-As the outer iterations converge, the term $(\Sigma_f^{(n+1)} \phi^{(n+1)} - \Sigma_f^{(n)} \phi^{(n)})$ goes to zero and thus there is no approximation in the final result. The approximate operator $H$ should be chosen such that that it is accurate when $T$ has weak spatial variation. \cite{adamowicz2021nilo} proposes $H$ to be the advection operator without diffusion.
-
-This method requires that
-
-\begin{itemize}
-    \item $\Sigma_f$ and $\phi$ must be stored from the previous iteration
-    \item Two additional cross section evalutations are performed for numerical differentiation
-\end{itemize}
-
-The NILO-CMFD algorithm for a steady-state problem (or a single time step of a time-dependent problem) is presented in \autoref{alg:nilo-cmfd}.
 
 \section{MNP Method}\label{sec:MNP}
+
+The Multilevel Nonlinear Projective method is formulated by projecting the full-order transport equation first onto the first two anglular moment equations with exact closures, then onto an effective grey equation for energy-integrated scalar flux and current. The method introduces no approximation.
+
+The first two angular moments ($\int \cdot\, d\mu$ and $\int \mu \cdot d\mu$) of the high-order transport equation are
+
+\begin{subequations}\label{eq:mloqd}
+    \begin{equation}
+        \frac{1}{v_g}\frac{\partial \phi_g}{\partial t} + \frac{\partial J_g}{\partial z} + \left(\Sigma_{t, g} - \Sigma_{s, g\rightarrow g\p} \right)\phi_g = \sum_{g\p = 1}^{G}\Sigma_{s, g\p \rightarrow g}\phi_{g\p} + \chi_g^p \overline{(1- \beta)\nu\Sigma_f}\phi + q_{del, g}^{\chi}
+    \end{equation}
+
+    \begin{equation}
+        \frac{1}{v_g}\frac{\partial J_g}{\partial t} + \frac{\partial}{\partial z}\left(E_g \phi_g \right) + \Sigma_{t, g}J_g = 0,
+    \end{equation}
+
+where, with vacuum boundaries,
+    \begin{gather}
+        J_g(0, t) = J_g(Z, t) = 0\\
+        \phi_g(z, 0) = \phi_g^0(z), \quad J_g(z, 0)=J_g^0(z)
+    \end{gather}
+\end{subequations}
+
+where $E_g$ is the group Eddington factor,
+
+\begin{equation}
+    E_g = \frac{\int_{-1}^1 \mu^2 \psi_g\, d\mu}{\int_{-1}^1 \psi_g\, d\mu}.
+\end{equation}
+
+The Grey Low-Order Quasidiffusion (GLOQD) equations are:
+
+\begin{subequations}\label{eq:gloqd}
+    \begin{equation}
+        \frac{\partial}{\partial t}\left( \frac{\phi}{\overline{v}} \right) + \frac{\partial J}{\partial z} + \left(\overline{\Sigma}_a - \overline{(1 - \beta)\nu \Sigma_f }\right)\phi = q_{del}^\chi
+    \end{equation}
+
+    \begin{equation}
+        \frac{\partial}{\partial t}\left(\frac{J}{\overline{v}} \right) + \frac{\partial}{\partial z}\left(\overline{E}\phi \right) + \overline{\Sigma}_{tr}J + \overline{\zeta}\phi = 0,
+    \end{equation}
+\end{subequations}
+
+where the initial and boundary conditions, as well as spectrum-averaged cross sections and factors $\overline{\Sigma}_u, \overline{E}, \overline{\zeta}, \overline{v}$ are defined in \cite{tamang2014multilevel}.
+
+In each outer iteration of the MNP method, the following is performed:
+
+\begin{enumerate}
+    \item Cross-sections are evaluted from previous iteration's temperature $T^{(n)}$
+    \item High-order transport sweep (\cref{eq:transport}) is used to determine $\psi_g$, which is used to calculate group Eddington factor
+    \item Multigroup low-order Quasidiffusion equations (\cref{eq:mloqd}) are solved for $\phi_g$, $J_g$, which are used to calculate spectrum-averaged cross sections, Eddington factor, and velocity
+    \item Solve the coupled GLOQD (\cref{eq:gloqd}) and TH equations to yield $\phi^{(n+1)}$ and $T^{(n+1)}$
+\end{enumerate}
+
 
 A sketch of the Multilevel Nonlinear Projective method is presented in \autoref{alg:mnp}. The full algorithm is presented in~\cite{tamang2014multilevel}, which also gives the Multigroup Low-Order Quasidiffusion (MLOQD) and Grey LOQD (GLOQD) equations which are necessary for its implementation.
 
@@ -272,18 +434,15 @@ A sketch of the Multilevel Nonlinear Projective method is presented in \autoref{
 % \section{NILO-MNP Method Derivation}\label{sec:derivation}
 
 
-
 \section{Preliminary and expected results}
 
-My implementation of the MNP method will use the Linear Discontinuous (LD) finite element discretization in 1D slab geometry, and finite volume discretization of the TH operator (for which I will use the advection-diffusion equation, as in~\cite{adamowicz2021nilo}).
+My implementation of the MNP method will use the Linear Discontinuous (LD) finite element discretization in 1D slab geometry (derived in \Cref{sec:discretization}), and finite volume discretization of the TH operator (for which I will use the advection-diffusion equation, as in~\cite{adamowicz2021nilo}).
 
-I have an LD transport solver which I can adapt to the high-order solver for this implementation; I expect to have that done this week. Afterwards, I will need to write the low-order solvers for MLOQD and GLOQD, and add a function for temperature-dependent cross section evaluations. The primary source of work for this early stage of implementation will be the finite volume advection-diffusion solver.
-
-Once I have all solvers in place, I will just need to configure them for each of the methods, which should not be a challenge, as they all use the same kernel. For the Newton iterations in the MNP method I will use Jacobian-free Newton-Krylov iteration, which will introduce another level of iteration to \autoref{alg:mnp}.
+I will use Jacobian-free Newton-Krylov iteration for the innermost iterations of \autoref{alg:mnp} for MNP implementation.
 
 A time-dependent transient benchmark is introduced in~\cite{tamang2014multilevel}, which I can compare my results to. If I implement both the MNP and NILO-MNP methods, I will record the number of each kind of iteration required (i.e. to count number of $n\times n$ linear solves required for each method) and residual histories for each method to show convergence rate.
 
-If I am able to perform Fourier stability analysis, the intended results are:
+If time allows for a Fourier stability analysis, the intended results are:
 
 \begin{itemize}
     \item Region of stability for the NILO-MNP method
@@ -293,5 +452,105 @@ If I am able to perform Fourier stability analysis, the intended results are:
 
 \bibliographystyle{ieeetr}
 \bibliography{references}
+
+\clearpage
+\appendix
+
+\section{LD spatial discretization of the transport equation}\label{sec:discretization}
+
+Using some shorthand notation, the multigroup 1D diffusion equation, after applying the Method of Discrete Ordinates and backward Euler temporal differencing, is, for angle $m$,
+
+\begin{equation}
+    \mu_m \ddz \psi_{m, g} + \hat{\Sigma}_{t, g}\psi_{m, g} = \frac{\chi_g}{2}\sum_{g\p = 1}^{N_g} c_{f, g\p} \phi_{g\p} + \frac{1}{2}\sum_{g\p =1}^{N_g} \sigma_{s, g\p \rightarrow g}\phi_{g\p} + \hat{q}_{m, g}\label{eq:shorthand}
+\end{equation}
+
+where $\hat{\Sigma}_{t, g}$ includes contribution from the temporal discretization,and $\hat{q}$ includes contribution from temporal discretization and the precursor decay source. The coefficient $c_f$ is
+
+\begin{equation}
+    c_{f, g} = (1 - \beta_g)\nu\Sigma_{f, g}.
+\end{equation}
+
+The spatial grid $\{ \kappa_i^z \}_{i=1}^{N_i}$ is introduced, where
+
+\begin{gather}
+    \kappa_i^z = [z_{i-1/2}, z_{i+1/2}]\\
+    z_{1/2} = 0\\
+    z_{N_i +1/2} = Z.
+\end{gather}
+
+Then, approximating each spatial function as a combination of linear basis functions,
+
+\begin{equation}
+    \psi_{m, g}(z) = \sum_{c = L, R}\psi_{m, g, c, i}b_{c, i}, \qquad z \in \kappa_i^z
+\end{equation}
+\begin{gather}
+    b_{L, i} = \frac{z_{i+1/2} - z}{\Delta z_i}\\
+    b_{R, i} = \frac{x - z_{i-1/2}}{\Delta z_i},
+\end{gather}
+
+where
+
+\begin{gather}
+    \int_{\kappa_i} b_{L, i}^2 dz = \int_{\kappa_i} b_{R, i}^2 = \frac{1}{3}\Delta z_i\\
+    \int_{\kappa_i} b_{L, i} dz = \int_{\kappa_i} b_{R, i} = \frac{1}{2}\Delta z_i\\
+    \int_{\kappa_i} b_{L, i}b_{R, i} dz = \frac{1}{6}\Delta z_i
+\end{gather}
+
+Then, \cref{eq:shorthand} is integrated over the two basis functions in each cell. Note that this requires the cross sections (and thus temperature) to be constant in each spatial cell.
+
+\begin{subequations}
+    \begin{multline}
+        \mu_m \int_{\kappa_i}\ddz \psi_{m, g} b_{L, i} dz+ \hat{\Sigma}_{t, g}\int_{\kappa_i}\psi_{m, g} b_{L, i}dz =\\
+         \frac{\chi_g}{2}\sum_{g\p = 1}^{N_g} c_{f, g\p} \int_{\kappa_i}\phi_{g\p} b_{L, i}dz + \frac{1}{2}\sum_{g\p =1}^{N_g} \sigma_{s, g\p \rightarrow g}\int_{\kappa_i}\phi_{g\p} b_{L, i}dz + \int_{\kappa_i}\hat{q}_{m, g}b_{L, i} dz
+    \end{multline}
+    \begin{multline}
+        \mu_m \int_{\kappa_i}\ddz \psi_{m, g} b_{R, i} dz+ \hat{\Sigma}_{t, g}\int_{\kappa_i}\psi_{m, g} b_{R, i}dz =\\
+         \frac{\chi_g}{2}\sum_{g\p = 1}^{N_g} c_{f, g\p} \int_{\kappa_i}\phi_{g\p} b_{R, i}dz + \frac{1}{2}\sum_{g\p =1}^{N_g} \sigma_{s, g\p \rightarrow g}\int_{\kappa_i}\phi_{g\p}b_{R, i} dz + \int_{\kappa_i}\hat{q}_{m, g} b_{R, i}dz
+    \end{multline}
+\end{subequations}
+
+Then the divergence theorem is applied to the first term on the right-hand side,
+
+\begin{subequations}
+    \begin{multline}
+        \mu_m\left[\psi_{m, g}(z)b_{L, i} \right]_{z_{i-1/2}}^{z_{i+1/2}}  - \mu_m  \int_{\kappa_i} \psi_{m, g} \ddz b_{L, i} dz+ \hat{\Sigma}_{t, g}\int_{\kappa_i}\psi_{m, g} b_{L, i}dz =\\
+         \frac{\chi_g}{2}\sum_{g\p = 1}^{N_g} c_{f, g\p} \int_{\kappa_i}\phi_{g\p} b_{L, i}dz + \frac{1}{2}\sum_{g\p =1}^{N_g} \sigma_{s, g\p \rightarrow g}\int_{\kappa_i}\phi_{g\p} b_{L, i}dz + \int_{\kappa_i}\hat{q}_{m, g}b_{L, i} dz
+    \end{multline}
+    \begin{multline}
+        \mu_m\left[\psi(z)_{m, g}b_{R, i} \right]_{z_{i-1/2}}^{z_{i+1/2}}  - \mu_m \int_{\kappa_i}\psi_{m, g} \ddz b_{R, i} dz+ \hat{\Sigma}_{t, g}\int_{\kappa_i}\psi_{m, g} b_{R, i}dz =\\
+         \frac{\chi_g}{2}\sum_{g\p = 1}^{N_g} c_{f, g\p} \int_{\kappa_i}\phi_{g\p} b_{R, i}dz + \frac{1}{2}\sum_{g\p =1}^{N_g} \sigma_{s, g\p \rightarrow g}\int_{\kappa_i}\phi_{g\p}b_{R, i} dz + \int_{\kappa_i}\hat{q}_{m, g} b_{R, i}dz
+    \end{multline}
+\end{subequations}
+
+For the boundary values, $\psi(x_{i\pm 1/2})$, the upwind flux is defined as
+
+\begin{equation}
+    \psi_{m, g, L, i}^b = \begin{cases}
+        \psi_{m, g, R, i-1}, & \mu > 0\\
+        \psi_{m, g, L, i}, & \mu < 0
+    \end{cases}, \quad \psi_{m, g, R, i}^b = \begin{cases}
+        \psi_{m, g, R, i}, & \mu > 0\\
+        \psi_{m, g, L, i+1}, & \mu < 0
+    \end{cases}
+\end{equation}
+
+then, using the upwinding scheme and expanding each function in terms of its basis functions,
+
+
+\begin{subequations}
+    \begin{multline}
+        \mu_m \left[\psi_{m, g, R, i}^b - \psi_{m, g, L, i}^b \right] + \frac{1}{2}\mu_m \left(\psi_{m, g, L, i} + \psi_{m, g, R, i}\right) + \hat{\Sigma}_{t, g} \frac{1}{6}\Delta z_i \left( 2\psi_{m, g, L, i} + \psi_{m, g, R, i}\right) =\\
+        \frac{\chi_g}{2}\sum_{g\p = 1}^{N_g} c_{f, g\p} \frac{1}{6}\Delta z_i \left( 2\phi_{g\p, L, i} + \phi_{g\p, R, i}\right) + \frac{1}{2}\sum_{g\p =1}^{N_g} \sigma_{s, g\p \rightarrow g}\frac{1}{6}\Delta z_i\left( 2\phi_{g\p, L, i} + \phi_{g\p, R, i}\right) \\
+        + \frac{1}{6}\Delta z_i\left(2q_{m, g, L, i} + q_{m, g, R, i}\right)
+    \end{multline}
+    \begin{multline}
+        \mu_m \left[\psi_{m, g, R, i}^b - \psi_{m, g, L, i}^b \right] - \frac{1}{2}\mu_m \left(\psi_{m, g, L, i} + \psi_{m, g, R, i}\right) + \hat{\Sigma}_{t, g} \frac{1}{6}\Delta z_i \left( \psi_{m, g, L, i} + 2\psi_{m, g, R, i}\right) =\\
+        \frac{\chi_g}{2}\sum_{g\p = 1}^{N_g} c_{f, g\p} \frac{1}{6}\Delta z_i \left( \phi_{g\p, L, i} + 2\phi_{g\p, R, i}\right) + \frac{1}{2}\sum_{g\p =1}^{N_g} \sigma_{s, g\p \rightarrow g}\frac{1}{6}\Delta z_i\left( \phi_{g\p, L, i} + 2\phi_{g\p, R, i}\right) \\
+        + \frac{1}{6}\Delta z_i\left(q_{m, g, L, i} + 2q_{m, g, R, i}\right)
+    \end{multline}
+\end{subequations}
+
+
+
 
 \end{document}
