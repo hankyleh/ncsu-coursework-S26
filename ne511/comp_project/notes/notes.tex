@@ -1,0 +1,339 @@
+\documentclass{proposal}
+
+\title{NE511 Computational Project Notes}
+\author{Kyle Hansen}
+\date{\today}
+
+
+
+\newcommand{\calL}{\mathcal{L}}
+\newcommand{\calS}{\mathcal{S}}
+\newcommand{\calH}{\mathcal{H}}
+\newcommand{\calQ}{\mathcal{Q}}
+\newcommand{\inv}{^{-1}}
+\newcommand{\ddx}{\frac{\partial}{\partial x}}
+\newcommand{\ddt}{\frac{\partial}{\partial t}}
+\newcommand{\ra}{\rightarrow}
+\newcommand{\qqquad}{\hskip 3em\relax}
+\newcommand{\T}[1]{\text{{#1}}}
+\newcommand{\p}{^\prime}
+\newcommand{\rarr}{\rightarrow}
+
+\usepackage{cleveref}
+\usepackage[title]{appendix}
+
+
+
+
+% \numberwithin{equation}{section}
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+
+\section{Multiphysics Problem Description}
+
+\subsection{Multigroup neutron transport equation with Backward Euler time discretization}
+
+The problem described here is for 1-dimensional multigroup neutron transport, coupled to 1-dimensional advection-diffusion through temperature- and flux-dependent cross sections.
+
+The one-dimensional time-dependent neutron transport equation (NTE) for prompt neutrons with isotropic scattering and isotropic source is
+
+\begin{subequations}
+    \begin{multline}
+        \left[\frac{1}{v(E)}\ddt + \mu \ddx + \sigma_t(x, E) \right]\psi(x, \mu, E, t) =\\
+        \frac{\chi}{2}\int\limits_{0}^{\infty}dE\p\; (1-\beta(E\p))\nu(x, E\p)\sigma_f(x, E\p) \phi(x, E\p, t) + \frac{1}{2}\int\limits_{0}^{\infty}dE\p\; \sigma_{s}(x, E\p \rarr E) \phi(x, E\p, t) + q(x, E, t), \\
+         x \in [0, X], \; E \in [0,\infty), \;\mu \in [-1, 1], \; t>0
+    \end{multline}
+    \begin{equation}
+        \phi(x, E, t) = \int\limits_{-1}^1 d\mu\; \psi(x, \mu, E, t)
+    \end{equation}
+    \begin{equation}
+        \psi(x, \mu, E, 0) = \psi^0(x, \mu, E)
+    \end{equation}
+    \begin{equation}
+        \psi(0, \mu, E, t) = \psi^{+}(\mu, E, t), \quad \mu > 0
+    \end{equation}
+    \begin{equation}
+        \psi(X, \mu, E, t) = \psi^{-}(\mu, E, t), \quad \mu < 0.
+    \end{equation}
+\end{subequations}
+
+
+Using the standard multigroup approximation, the equation for group $g$ becomes
+
+\begin{subequations}
+    \begin{multline}
+        \left[\frac{1}{v_g}\ddt + \mu \ddx + \sigma_{t, g} \right]\psi_g(x, \mu, E, t) =\\
+        \frac{\chi_g}{2}\sum_{g\p = 1}^{N_g} (1- \beta_{g\p})\nu\sigma_{f, g\p}(x) \phi_{g\p}(x,  t) + \frac{1}{2}\sum_{g\p = 1}^{N_g} \sigma_{s, g\p \rarr g}(x) \phi_{g\p}(x, t)+ q_{ g}(x,  t), \\
+        g = 1, \dots, N_g,\; x \in [0, X],  \;\mu \in [-1, 1], \; t>0
+    \end{multline}
+    \begin{equation}
+        \phi_g(x,  t) = \int\limits_{-1}^1 d\mu\; \psi_g(x, \mu, t)
+    \end{equation}
+    \begin{equation}
+        \psi_g(x, \mu,  0) = \psi_g^0(x, \mu)
+    \end{equation}
+    \begin{equation}
+        \psi_g(0, \mu,  t) = \psi_g^{+}(\mu,  t), \quad \mu > 0
+    \end{equation}
+    \begin{equation}
+        \psi_g(X, \mu,  t) = \psi_g^{-}(\mu, t), \quad \mu < 0.
+    \end{equation}
+\end{subequations}
+
+The Backward Euler temporal discretization scheme is
+
+\begin{equation}
+    \left.\ddt \psi(t)\right|_{t = t_{j+1}} \approx \frac{\psi(t_{j+1}) - \psi(t_j)}{\Delta t_{j}}
+\end{equation}
+
+where $t_{j=0} = 0$ and
+
+\begin{equation}
+    \Delta t_j = t_{j+1} - t_j.
+\end{equation}
+
+Substituting this into the multigroup neutron transport equation yields the effective steady-state problem at each time step,
+
+\begin{subequations}\label{eq:equivalent-prompt-transport}
+    \begin{multline}
+        \left[ \mu \ddx + \hat{\sigma}^{(j+1)}_{t, g} \right]\psi^{(j+1)}_g(x, \mu, E) =\\
+        \frac{\chi_g}{2}\sum_{g\p = 1}^{N_g} (1- \beta_{g\p})\nu\sigma^{(j+1)}_{f, g\p}(x) \phi^{(j+1)}_{g\p}(x) + \frac{1}{2}\sum_{g\p = 1}^{N_g} \sigma^{(j+1)}_{s, g\p \rarr g}(x) \phi_{g\p}^{(j+1)}(x)+ \hat{q}^{(j+1)}_{g}(x, \mu), \\
+        g = 1, \dots, N_g,\; j=1, \dots N_j,\; x \in [0, X],  \;\mu \in [-1, 1]
+    \end{multline}
+    \begin{equation}
+        \phi^{(j+1)}_g(x) = \int\limits_{-1}^1 d\mu\; \psi^{(j+1)}_g(x, \mu)
+    \end{equation}
+    \begin{equation}
+        \psi^{(0)}_g(x, \mu) = \psi_g^0(x, \mu)
+    \end{equation}
+    \begin{equation}
+        \psi^{(j+1)}_g(0, \mu) = \psi_g^{+}(\mu, t_{j+1}), \quad \mu > 0
+    \end{equation}
+    \begin{equation}
+        \psi^{(j+1)}_g(X, \mu) = \psi_g^{-}(\mu, t_{j+1}), \quad \mu < 0
+    \end{equation}
+\end{subequations}
+
+where the augmented total cross section and source are
+
+\begin{equation}
+    \hat{\sigma}^{(j+1)}_{t, g} = \left(\sigma^{(j+1)}_{t, g}(x) +\frac{1}{v_g \Delta t_j} \right)
+\end{equation}
+
+\begin{equation}
+    \hat{q}_g^{(j+1)}(x, \mu) = \left(q_g(x, t_{j+1}) + \frac{1}{v_g \Delta t_j}\psi_g^{(j)}(x, \mu) \right).
+\end{equation}
+
+\subsection{Precursor balance equations}
+
+In one dimension, the precursor balance equation is 
+
+\begin{subequations}
+    \begin{equation}
+        \ddt C_{d, k}(x, t) = -\lambda_k C_{d, k}(x, t) + \sum_{g = 1}^{N_g}\beta_{k, g}(x, t)\nu\sigma_{f, g}(x)\phi_g(x, t), \qquad k= 1,\dots, 6, \; t>0
+    \end{equation}
+    \begin{equation}
+        C_{d, k}(x, 0) = C_{d, k}^{0}(x).
+    \end{equation}
+\end{subequations}
+
+With the Backward Euler temporal discretization, this may be written, after some algebra, as
+
+\begin{equation}\label{eq:precursor-algebra}
+    C_{d, k}^{(j+1)}(x) = \frac{\frac{C_{d, k}^{(j)}}{\Delta t_j} + \sum_{g=1}^{N_g} \beta_{g, k}\nu\sigma_{f, g}\phi_g^{(j+1)}}{\lambda_k + \frac{1}{\Delta t_j}}.
+\end{equation}
+
+In the neutron transport equation, the delayed neutron source is
+
+\begin{equation}\label{eq:delayed-source-definition}
+    q_{del, g}(x, \mu) = \frac{1}{2}\sum_{k=1}^{6}\lambda_k \chi_{g, k}^d C_{d, k},
+\end{equation}
+
+so, substituting \cref{eq:precursor-algebra} into \cref{eq:delayed-source-definition}, the time-discretized delayed neutron source in the transport equation becomes
+
+\begin{equation}\label{eq:delayed-source}
+    q_{del, g}(x, \mu) = \frac{1}{2}\sum_{g\p = 1}^{N_g} {\Gamma}^{(j+1)}_{g\p\rarr g} \nu \sigma_{f, g\p} \phi_{g\p}^{(j+1)} + \overline{q}^{(j+1)}_{del, g}(x, \mu)
+\end{equation}
+
+where
+
+\begin{equation}
+    {\Gamma}^{(j+1)}_{g\p\rarr g} = \sum_{k=1}^6 \chi_{g, k}\frac{\lambda_k\Delta t_j \beta_{g\p, k}}{\lambda_k \Delta t_j + 1}
+\end{equation}
+
+\begin{equation}
+    \overline{q}^{(j+1)}_{del, g}(x, \mu) = \frac{1}{2}\sum_{k=1}^6 \lambda_k \chi_{g, k} \left(\frac{C^{(j)}}{\lambda_k \Delta t_j + 1} \right).
+\end{equation}
+
+Here, $\overline{q}^{(j+1)}$ represents the decay of precursors that existed in time step $j$, and ${\Gamma}^{(j+1)}_{g\p\rarr g}$ represents the proportion of fissions in group $g\p$, during the time step $\Delta t_j$, whose delayed neutrons decay during the same time step (immediate precursor decay).
+
+\subsection{Equivalent steady-state transport problem with delayed neutrons}
+
+Adding \cref{eq:delayed-source} to \cref{eq:equivalent-prompt-transport,}, the quasi-steady state transport equation to be solved at each time step, including the effect of delayed neutrons, is
+
+\begin{subequations}\label{eq:equivalent-steady-with-delayed}
+   \begin{multline}
+        \left[ \mu \ddx + \hat{\sigma}^{(j+1)}_{t, g} \right]\psi^{(j+1)}_g(x, \mu, E) =\\
+        \frac{\chi_g}{2}\sum_{g\p = 1}^{N_g} (1- \beta_{g\p})\nu\sigma^{(j+1)}_{f, g\p}(x) \phi^{(j+1)}_{g\p}(x) + \frac{1}{2}\sum_{g\p = 1}^{N_g} \left(\sigma^{(j+1)}_{s, g\p \rarr g}(x) + {\Gamma}^{(j+1)}_{g\p\rarr g} \nu \sigma_{f, g\p} \right)\phi_{g\p}^{(j+1)}(x)\\
+          +\hat{q}^{(j+1)}_{g}(x, \mu)+ \overline{q}^{(j+1)}_{del, g}(x, \mu), \\
+        g = 1, \dots, N_g,\; j=1, \dots N_j,\; x \in [0, X],  \;\mu \in [-1, 1]
+    \end{multline}
+    \begin{equation}
+        \phi^{(j+1)}_g(x) = \int\limits_{-1}^1 d\mu\; \psi^{(j+1)}_g(x, \mu)
+    \end{equation}
+    \begin{equation}
+        \psi^{(j+1)}_g(0, \mu) = \psi_g^{+}(\mu, t_{j+1}), \quad \mu > 0
+    \end{equation}
+    \begin{equation}
+        \psi^{(j+1)}_g(X, \mu) = \psi_g^{-}(\mu, t_{j+1}), \quad \mu < 0
+    \end{equation}
+\end{subequations}
+
+where
+
+\begin{subequations}
+    \begin{equation}
+        \psi^{(0)}_g(x, \mu) = \psi_g^0(x, \mu), \qquad g= 1, \dots, N_g
+    \end{equation}
+    \begin{eqnarray}
+        C_{d, k}^{(0)}(x) = C_{d, k}^0(x), \qquad k = 1,\dots, 6
+    \end{eqnarray}
+\end{subequations}
+
+
+
+After solving for the neutron distribution, the precursor distribution can be recovered using \cref{eq:precursor-algebra}.
+
+
+\subsection{Multigroup Low-Order Quasidiffusion Equations}
+
+Taking the zeroth and first spatial moments ($\int \cdot \,d\mu$ and $\int \mu \cdot d\mu$) of \cref{eq:equivalent-steady-with-delayed} (omitting $j+1$ index) yields
+
+\begin{subequations}
+    \begin{multline}
+        \ddx J_g(x) + \sigma_{t, g}\phi_g(x) = \chi_g \overline{(1-\beta)\nu\sigma_{f}}\phi \\
+        +  \sum_{g\p = 1}^{N_g} \left(\sigma_{s, g\p \rarr g} + {\Gamma}_{g\p\rarr g} \nu \sigma_{f, g\p} \right)\phi_{g\p}(x) + \hat{Q}_g(x) + \overline{Q}_{del, g}
+    \end{multline}
+    \begin{equation}
+        \ddx (E_g \phi_g) + \sigma_{t, g}J_g = \tilde{q}_g
+    \end{equation}
+    \begin{equation}
+        J_g(0) = C^b_{0, g}\phi_g(0), \qquad J_g(X) = C^b_{X, g}\phi_g(X)
+    \end{equation}
+    
+\end{subequations}
+
+where the initial conditions are derived from taking the zeroth and first spatial moments of $\psi^0$ and
+
+\begin{equation}
+    \hat{Q}_g(x) = \left(2 q_g(x) + \frac{1}{v_g \Delta t_j}\phi_g^{(j)}(x) \right)
+\end{equation}
+\begin{equation}
+    \overline{Q}_{del, g} = \sum_{k=1}^6 \lambda_k \chi_{g, k} \left(\frac{C^{(j)}}{\lambda_k \Delta t_j + 1} \right)
+\end{equation}
+\begin{equation}
+    \tilde{q}_g = \frac{1}{v_g \Delta t_j}J^{(j)}(x)
+\end{equation}
+        
+and
+
+\begin{equation}
+    \overline{(1-\beta)\nu\sigma_{f}} = \frac{\sum_{g=1}^{N_g}(1-\beta_g)\nu\sigma_{f, g}}{\sum_{g=1}^{N_g} \phi_g}
+\end{equation}
+
+\begin{equation}
+    \phi = \sum_{g=1}^{N_g} \phi_g.
+\end{equation}
+
+The nonlinear closure term (Eddington Factor) is
+
+\begin{equation}
+    E_g = \frac{\int\limits_{-1}^1 \mu^2 \psi_g d \mu}{\int\limits_{-1}^1 \psi_g d\mu}
+\end{equation}
+
+\subsection{Advection-diffusion equation}
+
+The advection-diffusion equation in 1D is
+
+
+\begin{equation}\label{eq:timedep-adv-diffusion}
+    \left[ \ddt - \ddx k_b \ddx + \dot{m}c_p \ddx \right]T(x, t) = W_f f(x, t)
+\end{equation}
+
+or in operator form,
+
+\begin{equation}
+    \calH T(x, t) = Q_f
+\end{equation}
+
+with appropriate boundary conditions. the fission reaction rate $f$ is 
+
+\begin{equation}
+    f(x) = \sum_{g=1}^{N_g} \sigma_{f, g}\phi_g(x, t)
+\end{equation}
+
+and
+
+\begin{description}[labelindent=1cm, labelwidth=1.2cm, before={\renewcommand\makelabel[1]{##1 $=$}}]
+    \item[$c_p$] specific heat capacity
+    \item[$k_b$] turbulent diffusion coefficient
+    \item[$\dot{m}$] mass flow rate
+    \item[$W_f$] fission energy deposition
+\end{description}
+
+Discretizing with Backward Euler, this equation becomes
+
+\begin{align}
+    \left[ \frac{1}{\Delta t_j} - \ddx k_b \ddx + \dot{m}c_p \ddx \right]T^{(j+1)}(x) &= W_f f^{(j+1)}(x) + \frac{1}{\Delta t_j}T^{(j)}\\
+    \hat{\calH}T^{(j+1)}(x) &= \hat{Q}_f^{(j+1)}
+\end{align}
+
+which is an equivalent steady-state advection-diffusion problem at each time step with a local removal term.
+
+\subsection{Cross-section feedback}
+
+For this study, the macroscopic feedback will be modeled with
+
+\begin{equation}\label{eq:temp-xs}
+    \sigma_u(x) = \sigma_{u, 0} + \sigma_{u, 1, d}\left( \sqrt{T(x) + \kappa W_f f(x)} - \sqrt{T_{d, 0}} \right)  + \sigma_{u, 1, b}\left(T(x) -T_0 \right)
+\end{equation}
+
+for each reaction $u$, where  $\kappa, \sigma_{u, 0}, \sigma_{u, 1, d}, \sigma_{u, 1, b}, T_{d, 0},$ and $T_0$ are material constants, defined for each neutron energy group $g$.
+
+\section{MNP Method}
+
+\subsection{Basic method details}
+
+\subsection{Iterative Algorithms}
+
+
+\section{NILO-MNP method}
+
+\subsection{Method details}
+
+\subsection{Iterative Algorithm}
+
+\clearpage
+\begin{appendices}
+
+\section{LD Discretization of Neutron Transport equation}
+
+\section{FV Discretization of advection-diffusion equation}
+
+\section{LD Discretization of QD equations}
+
+\end{appendices}
+
+
+
+
+
+
+
+
+
+
+\end{document}
