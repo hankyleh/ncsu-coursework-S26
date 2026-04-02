@@ -25,20 +25,41 @@
 \algrenewcommand\algorithmicrequire{\textbf{Precondition:}}
 \algrenewcommand\algorithmicensure{\textbf{Postcondition:}}
 
+\newcommand{\ddz}{\frac{\partial}{\partial z}}
+\newcommand{\p}{^\prime}
+
+
 \begin{document}
 
 \frame{\titlepage}
+
+\section{Overview}
+
+\begin{frame}
+    \frametitle{Project Overview}
+    Multilevel Nonlinar Projective method projects multigroup transport onto one-group Quasidiffusion (QD) equation for scalar flux.
+    \begin{itemize}
+        \item QD equation coupled to TH via implicit temperature dependence of cross sections
+        \item Coupled system of GLOQD and TH solved with Newton iteration
+    \end{itemize}
+    Project scope:
+    \begin{itemize}
+        \item Implement MNP method for coupled neutron transport and TH
+        \begin{itemize}
+            \item Linear Discontinous Finite Element method for Transport Equation, MLOQD, and GLOQD
+            \item Finite volume method for advection-diffusion TH equation
+        \end{itemize}
+        \item Fourier stability analysis for MNP method
+    \end{itemize}
+    Compare to NILO-CMFD method
+\end{frame}
 
 \begin{frame}
     \frametitle{Outline}
     \tableofcontents
 \end{frame}
 
-\section{Overview}
 
-\begin{frame}
-    \frametitle{Project Overview}
-\end{frame}
 
 \begin{frame}[allowframebreaks]
     \frametitle{Problem Definition}
@@ -51,7 +72,8 @@
          + q(\vec{r}, \hat{\Omega}, E, t) + \sum_k\mathcal{P}_kC_k, \tag{Neutron Transport}
         \end{multlined}\\
         \frac{\partial C_k}{\partial t} = -\lambda_k C_k + \int\limits_{0}^{\infty}dE\; \beta_{k}(E)\nu(E)\Sigma_f(E)\int\limits_{4\pi}d\hat{\Omega} \psi(\vec{r}, \hat{\Omega}, E, t),\tag{Precursor Balance}\\
-        \mathcal{H}T(\vec{r}) = \mathcal{Q}(T)\int\limits_{4\pi}d\hat{\Omega} \psi(\vec{r}, \hat{\Omega}, E, t),\tag{Heat Transfer}
+        \mathcal{H}T(\vec{r}) = \mathcal{Q}(T)\psi(\vec{r}, \hat{\Omega}, E, t),\tag{Heat Transfer}\\
+        \Sigma_u(\vec{r}) = \Sigma_u\left(T, \phi\right)\tag{XS Temp. Dependence}
     \end{gather}
     \begin{minipage}{0.55\textwidth}
         \begin{gather}\addtocounter{equation}{3}
@@ -72,18 +94,17 @@
 
     \footnotesize
     \pagebreak
-
     \begin{subequations}
         \begin{gather}
-            \mathcal{L}(T)\psi = \left[ \frac{\partial}{\partial t} + \hat{\Omega} \cdot \nabla  + \Sigma_t(T)  \right]\psi\\
+            \mathcal{L}(T)\psi = \left[ \frac{\partial}{\partial t} + \mu \ddz  + \Sigma_t(T)  \right]\psi\\
             \mathcal{S}(T)\psi =  
             \begin{multlined}[t]
-                \frac{\chi(E)}{4\pi} \int\limits_0^\infty dE^\prime  \; \nu\Sigma_f(E^\prime, T) \int\limits_{4\pi}d\hat{\Omega} \psi(\vec{r}, \hat{\Omega}, E^\prime, t) \\+ \int\limits_0^\infty dE^\prime\int\limits_{4\pi}d \Omega^\prime \; \Sigma_s(\hat{\Omega}^\prime \cdot \hat{\Omega}, E^\prime \rightarrow E, T) \psi(\hat{\Omega}^\prime, E^\prime)
+                \frac{\chi(E)}{2} \int\limits_0^\infty dE^\prime  \; \nu\Sigma_f(E^\prime, T) \int\phi(z, E^\prime, t) \\+ \frac{1}{2}\int\limits_0^\infty dE^\prime \Sigma_s(E^\prime \rightarrow E, T) \phi(z, E\p, t)
             \end{multlined}\\
             \Sigma_i = \Sigma_{i, 0} + \Sigma_{i, 1, d} \left( \sqrt{T + \beta_{fb} W_f f(z)} - \sqrt{T_{d, 0}} \right) + \Sigma_{i, 1, b}\left(T - T_0 \right) \\
-            \mathcal{P}_kC_k = \frac{1}{4\pi}\lambda_k \chi_k^{del}(\vec{r}, E, t)C_k(\vec{r}, t) \\
-            \mathcal{Q}(T)\int\limits_{4\pi}d\hat{\Omega} \psi(\vec{r}, \hat{\Omega}, E, t) = \int\limits_{0}^\infty dE \; W_f(E)\Sigma_f(E, T)\int\limits_{4\pi}d\hat{\Omega} \psi(\vec{r}, \hat{\Omega}, E, t)\\
-            \mathcal{H}T = \left[ \frac{\partial}{\partial t} + \dot{m}c_p\nabla -k_b\Delta  \right]T(\vec{r})
+            \mathcal{P}_kC_k = \frac{1}{2}\lambda_k \chi_k^{del}(z, E, t)C_k(z, t) \\
+            \mathcal{Q}(T) \psi = \int\limits_{0}^\infty dE \; W_f(E)\Sigma_f(E, T)\phi(z, E, t)\\
+            \mathcal{H}T = \left[ \frac{\partial}{\partial t} + \dot{m}c_p \ddz -\ddz k_b\ddz  \right]T(z)
         \end{gather}
     \end{subequations}
     \normalsize
@@ -92,8 +113,8 @@
 
 \section{Coupling Methods using CMFD}
 
-\begin{frame}{General Coupling Strategy}
-    \begin{alertblock}{Coupling HT to High-Order Transport is needlessly expensive}
+\begin{frame}{FPI Coupling}
+    \begin{alertblock}{Directly HT to High-Order Transport is expensive}
         Transport: $\vec{r}, \hat{\Omega}, E, t$
 
         Heat Transfer: $\vec{r}, t$
@@ -113,10 +134,9 @@
     \end{minipage}
     \begin{minipage}{0.39\linewidth}
         \begin{itemize}
-            \item Implicit HT uses $H\delta T \approx \mathcal{H}\delta T$ to compute cross sections
             \item Coupling is contained in LO/Approximate system
             \item Requires few solutions of NT and HT equations
-            \item Introduces \alert{no approximation} in final solution
+            \item Can approximate TH in inner iterations without approximation in final solution
         \end{itemize}
         
     \end{minipage}
@@ -124,7 +144,7 @@
     
 \end{frame}
 
-\begin{frame}{CMFD Coupling Methods~\cite{adamowicz2023nilo}}
+\begin{frame}{CMFD Coupling Methods -- FPI-CMFD}
     CMFD aids iteration by introducing Diffusion Synthetic Acceleration (DSA) and coarse-mesh finite difference (CMFD).
     
     \vspace{1em} Most apparent coupling method: fixed-point iteration (FPI), which treats cross sections \textit{explicitly}
@@ -164,6 +184,10 @@
 
 \begin{frame}{CMFD Coupling Methods -- X-CMFD}
     Use implicit cross sections in low-order diffusion calculation
+    
+    \begin{itemize}
+        \item Diffusion uses end-of-iteration xs
+    \end{itemize}
 
     \begin{equation}
         \boxed{\mathcal{L}\psi^{(n+1)} = \mathcal{S}\phi^{(n)}}{\longrightarrow}\boxed{\begin{array}{c}
@@ -172,7 +196,7 @@
         \end{array}}\tag{X-CMFD}
     \end{equation}
     \begin{tikzpicture}[overlay,remember picture,black,>=Stealth, nodes={font=\footnotesize}]
-        \draw (inner)  ++ (0, -0.30) node[below] {{Solved by "inner iterations"}};
+        \draw (inner)  ++ (0, -0.30) node[below] {{Solved by ``inner iteration''}};
     \end{tikzpicture}
 
     X-CMFD addresses stability
@@ -183,7 +207,7 @@
 
 \end{frame}
 
-\begin{frame}{CMFD Coupling Methods -- NILO-CMFD}
+\begin{frame}{CMFD Coupling Methods -- NILO-CMFD~\cite{adamowicz2023nilo}}
     Reduce cost of implicit solution of coupled low-order diffusion and HT
     \begin{itemize}
         \item Use approximation $H \approx \mathcal{H}$ of HT operator to update implicit cross sections within inner iterations
@@ -205,14 +229,8 @@
 
 
 \begin{frame}{Multigroup Low-Order Quasidiffusion}
-    % Begin with the high-order multigroup NTE in 1D slab geometry,
 
-    % \begin{multline}
-    %     \left[\frac{1}{v_g}\frac{\partial}{\partial t} + \mu \frac{d}{dx}+ \Sigma_t \right]\psi_{g} = \frac{1}{2} \sum_{g^\prime} \left(\Sigma_{s, g} + \nu\Sigma_{f, g} \right)\phi_{g^\prime}\\
-    %     + q_{del, g} + q_{g}, \qquad g=1,\dots, N_g
-    % \end{multline}
-
-    Take zeroth and first spatial moments of the high-order multigroup NTE in 1D slab geometry
+    Take zeroth and first angular moments of the high-order multigroup NTE in 1D slab geometry
 
     \begin{subequations}
         \begin{multline}
@@ -275,7 +293,7 @@
 
     \begin{itemize}
         \item Couple NTE and HT using Nonlinearly Implicit Low-Order coupling and Multigroup Low-Order Quasidiffusion
-        \item Consider delayed neutrons (not included in~\cite{tamang2014multilevel})
+        \item Consider delayed neutrons (not included in CMFD results)
         \item 1D slab geometry, Linear Discontinuous (LD) finite element method
         \item HT: advection-diffusion equation using finite volume method
     \end{itemize}
@@ -302,7 +320,7 @@
     
     and discretize HT using Finite Volume method.
 
-    My implementation in Python, but can be scaled up to 2/3D easily using tools such as MFEM~\cite{anderson2021mfem}
+    I will implement in Python, but can be scaled up to 2/3D using tools such as MFEM~\cite{anderson2021mfem}
 
     \begin{figure}
         \centering
