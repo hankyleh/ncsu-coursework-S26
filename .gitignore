@@ -16,3 +16,6 @@ _minted/
 venv/
 .venv/
 *.toc
+*.glo
+*.ist
+*.nlo

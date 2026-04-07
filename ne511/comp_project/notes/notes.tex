@@ -6,44 +6,62 @@
 
 
 
-\newcommand{\calL}{\mathcal{L}}
-\newcommand{\calS}{\mathcal{S}}
-\newcommand{\calH}{\mathcal{H}}
-\newcommand{\calQ}{\mathcal{Q}}
-\newcommand{\inv}{^{-1}}
-\newcommand{\ddx}{\frac{\partial}{\partial x}}
-\newcommand{\ddt}{\frac{\partial}{\partial t}}
-\newcommand{\ra}{\rightarrow}
-\newcommand{\qqquad}{\hskip 3em\relax}
-\newcommand{\T}[1]{\text{{#1}}}
-\newcommand{\p}{^\prime}
-\newcommand{\rarr}{\rightarrow}
+\newcommand{\calL}{\ensuremath{\mathcal{L}}}
+\newcommand{\calS}{\ensuremath{\mathcal{S}}}
+\newcommand{\calH}{\ensuremath{\mathcal{H}}}
+\newcommand{\calQ}{\ensuremath{\mathcal{Q}}}
+\newcommand{\inv}{\ensuremath{^{-1}}}
+\newcommand{\ddx}{\ensuremath{\frac{\partial}{\partial x}}}
+\newcommand{\ddt}{\ensuremath{\frac{\partial}{\partial t}}}
+\newcommand{\ddT}{\ensuremath{\frac{\partial}{\partial T}}}
+\newcommand{\ra}{\ensuremath{\rightarrow}}
+\newcommand{\qqquad}{\ensuremath{\hskip 3em\relax}}
+\newcommand{\T}[1]{\ensuremath{\text{{#1}}}}
+\newcommand{\p}{\ensuremath{^\prime}}
+\newcommand{\rarr}{\ensuremath{\rightarrow}}
+\newcommand{\vareps}{\ensuremath {\varepsilon}}
 
+\usepackage{cancel}
 \usepackage{cleveref}
-\usepackage[title]{appendix}
+\usepackage[page,title,titletoc]{appendix}
 
 
+\usepackage{algpseudocode}
+\usepackage{algorithm2e}
+% \usepackage{subcaption}
+\usepackage{mathtools}
+\usepackage{amssymb}
 
+\newcommand*\Let[2]{\State{#1 $\gets$ #2}}
+\makeatletter
+\renewcommand{\@algocf@capt@plain}{above}
+\makeatother
 
-% \numberwithin{equation}{section}
 
 \begin{document}
 \maketitle
 
+
+
+
 \tableofcontents
+
+
 
 \section{Multiphysics Problem Description}
 
-\subsection{Multigroup neutron transport equation with Backward Euler time discretization}
+\subsection{Boltzmann Transport Equation for multiplying medium with delayed neutrons}
 
-The problem described here is for 1-dimensional multigroup neutron transport, coupled to 1-dimensional advection-diffusion through temperature- and flux-dependent cross sections.
+\subsubsection{Multigroup prompt neutron transport equation with Backward Euler time discretization}
 
-The one-dimensional time-dependent neutron transport equation (NTE) for prompt neutrons with isotropic scattering and isotropic source is
+The  problem described here is for 1-dimensional multigroup neutron transport, coupled to 1-dimensional advection-diffusion through temperature- and flux-dependent cross sections.
+
+The one-dimensional time-dependent neutron transport equation (NTE) for prompt neutrons with isotropic scattering, isotropic source, and vacuum boundary conditions is
 
 \begin{subequations}
     \begin{multline}
         \left[\frac{1}{v(E)}\ddt + \mu \ddx + \sigma_t(x, E) \right]\psi(x, \mu, E, t) =\\
-        \frac{\chi}{2}\int\limits_{0}^{\infty}dE\p\; (1-\beta(E\p))\nu(x, E\p)\sigma_f(x, E\p) \phi(x, E\p, t) + \frac{1}{2}\int\limits_{0}^{\infty}dE\p\; \sigma_{s}(x, E\p \rarr E) \phi(x, E\p, t) + q(x, E, t), \\
+        \frac{\chi(E)}{2}\int\limits_{0}^{\infty}dE\p\; (1-\beta(E\p))\nu(x, E\p)\sigma_f(x, E\p) \phi(x, E\p, t) + \frac{1}{2}\int\limits_{0}^{\infty}dE\p\; \sigma_{s}(x, E\p \rarr E) \phi(x, E\p, t) + q(x, E, t), \\
          x \in [0, X], \; E \in [0,\infty), \;\mu \in [-1, 1], \; t>0
     \end{multline}
     \begin{equation}
@@ -53,10 +71,10 @@ The one-dimensional time-dependent neutron transport equation (NTE) for prompt n
         \psi(x, \mu, E, 0) = \psi^0(x, \mu, E)
     \end{equation}
     \begin{equation}
-        \psi(0, \mu, E, t) = \psi^{+}(\mu, E, t), \quad \mu > 0
+        \psi(0, \mu, E, t) = 0, \quad \mu > 0
     \end{equation}
     \begin{equation}
-        \psi(X, \mu, E, t) = \psi^{-}(\mu, E, t), \quad \mu < 0.
+        \psi(X, \mu, E, t) = 0, \quad \mu < 0.
     \end{equation}
 \end{subequations}
 
@@ -76,58 +94,58 @@ Using the standard multigroup approximation, the equation for group $g$ becomes
         \psi_g(x, \mu,  0) = \psi_g^0(x, \mu)
     \end{equation}
     \begin{equation}
-        \psi_g(0, \mu,  t) = \psi_g^{+}(\mu,  t), \quad \mu > 0
+        \psi_g(0, \mu,  t) = 0, \quad \mu > 0
     \end{equation}
     \begin{equation}
-        \psi_g(X, \mu,  t) = \psi_g^{-}(\mu, t), \quad \mu < 0.
+        \psi_g(X, \mu,  t) = 0, \quad \mu < 0.
     \end{equation}
 \end{subequations}
 
 The Backward Euler temporal discretization scheme is
 
 \begin{equation}
-    \left.\ddt \psi(t)\right|_{t = t_{j+1}} \approx \frac{\psi(t_{j+1}) - \psi(t_j)}{\Delta t_{j}}
+    \left.\ddt \psi(t)\right|_{t = t^{j}} \approx \frac{\psi(t^{j}) - \psi(t^{j-1})}{\Delta t_{j}}
 \end{equation}
 
-where $t_{j=0} = 0$ and
+where $t^{j=0} = 0$ and
 
 \begin{equation}
-    \Delta t_j = t_{j+1} - t_j.
+    \Delta t_j = t^{j} - t^{j-1}.
 \end{equation}
 
 Substituting this into the multigroup neutron transport equation yields the effective steady-state problem at each time step,
 
 \begin{subequations}\label{eq:equivalent-prompt-transport}
     \begin{multline}
-        \left[ \mu \ddx + \hat{\sigma}^{(j+1)}_{t, g} \right]\psi^{(j+1)}_g(x, \mu, E) =\\
-        \frac{\chi_g}{2}\sum_{g\p = 1}^{N_g} (1- \beta_{g\p})\nu\sigma^{(j+1)}_{f, g\p}(x) \phi^{(j+1)}_{g\p}(x) + \frac{1}{2}\sum_{g\p = 1}^{N_g} \sigma^{(j+1)}_{s, g\p \rarr g}(x) \phi_{g\p}^{(j+1)}(x)+ \hat{q}^{(j+1)}_{g}(x, \mu), \\
+        \left[ \mu \ddx + \hat{\sigma}^{(j)}_{t, g} \right]\psi^{(j)}_g(x, \mu, E) =\\
+        \frac{\chi_g}{2}\sum_{g\p = 1}^{N_g} (1- \beta_{g\p})\nu\sigma^{(j)}_{f, g\p}(x) \phi^{(j)}_{g\p}(x) + \frac{1}{2}\sum_{g\p = 1}^{N_g} \sigma^{(j)}_{s, g\p \rarr g}(x) \phi_{g\p}^{(j)}(x)+ \hat{q}^{(j)}_{g}(x, \mu), \\
         g = 1, \dots, N_g,\; j=1, \dots N_j,\; x \in [0, X],  \;\mu \in [-1, 1]
     \end{multline}
     \begin{equation}
-        \phi^{(j+1)}_g(x) = \int\limits_{-1}^1 d\mu\; \psi^{(j+1)}_g(x, \mu)
+        \phi^{(j)}_g(x) = \int\limits_{-1}^1 d\mu\; \psi^{(j)}_g(x, \mu)
     \end{equation}
     \begin{equation}
         \psi^{(0)}_g(x, \mu) = \psi_g^0(x, \mu)
     \end{equation}
     \begin{equation}
-        \psi^{(j+1)}_g(0, \mu) = \psi_g^{+}(\mu, t_{j+1}), \quad \mu > 0
+        \psi^{(j)}_g(0, \mu) = 0, \quad \mu > 0
     \end{equation}
     \begin{equation}
-        \psi^{(j+1)}_g(X, \mu) = \psi_g^{-}(\mu, t_{j+1}), \quad \mu < 0
+        \psi^{(j)}_g(X, \mu) = 0, \quad \mu < 0
     \end{equation}
 \end{subequations}
 
 where the augmented total cross section and source are
 
 \begin{equation}
-    \hat{\sigma}^{(j+1)}_{t, g} = \left(\sigma^{(j+1)}_{t, g}(x) +\frac{1}{v_g \Delta t_j} \right)
+    \hat{\sigma}^{(j)}_{t, g} = \left(\sigma^{(j)}_{t, g}(x) +\frac{1}{v_g \Delta t_j} \right)
 \end{equation}
 
 \begin{equation}
-    \hat{q}_g^{(j+1)}(x, \mu) = \left(q_g(x, t_{j+1}) + \frac{1}{v_g \Delta t_j}\psi_g^{(j)}(x, \mu) \right).
+    \hat{q}_g^{(j)}(x, \mu) = \left(q_g(x, t_{j}) + \frac{1}{v_g \Delta t_j}\psi_g^{(j-1)}(x, \mu) \right).
 \end{equation}
 
-\subsection{Precursor balance equations}
+\subsubsection{Precursor balance equations}
 
 In one dimension, the precursor balance equation is 
 
@@ -143,7 +161,7 @@ In one dimension, the precursor balance equation is
 With the Backward Euler temporal discretization, this may be written, after some algebra, as
 
 \begin{equation}\label{eq:precursor-algebra}
-    C_{d, k}^{(j+1)}(x) = \frac{\frac{C_{d, k}^{(j)}}{\Delta t_j} + \sum_{g=1}^{N_g} \beta_{g, k}\nu\sigma_{f, g}\phi_g^{(j+1)}}{\lambda_k + \frac{1}{\Delta t_j}}.
+    C_{d, k}^{(j)}(x) = \frac{\frac{C_{d, k}^{(j-1)}}{\Delta t_j} + \sum_{g=1}^{N_g} \beta_{g, k}\nu\sigma_{f, g}\phi_g^{(j)}}{\lambda_k + \frac{1}{\Delta t_j}}.
 \end{equation}
 
 In the neutron transport equation, the delayed neutron source is
@@ -155,40 +173,40 @@ In the neutron transport equation, the delayed neutron source is
 so, substituting \cref{eq:precursor-algebra} into \cref{eq:delayed-source-definition}, the time-discretized delayed neutron source in the transport equation becomes
 
 \begin{equation}\label{eq:delayed-source}
-    q_{del, g}(x, \mu) = \frac{1}{2}\sum_{g\p = 1}^{N_g} {\Gamma}^{(j+1)}_{g\p\rarr g} \nu \sigma_{f, g\p} \phi_{g\p}^{(j+1)} + \overline{q}^{(j+1)}_{del, g}(x, \mu)
+    q_{del, g}(x, \mu) = \frac{1}{2}\sum_{g\p = 1}^{N_g} {\Gamma}^{(j)}_{g\p\rarr g} \nu \sigma_{f, g\p} \phi_{g\p}^{(j)} + q^{\chi,(j)}_{del, g}(x, \mu)
 \end{equation}
 
 where
 
 \begin{equation}
-    {\Gamma}^{(j+1)}_{g\p\rarr g} = \sum_{k=1}^6 \chi_{g, k}\frac{\lambda_k\Delta t_j \beta_{g\p, k}}{\lambda_k \Delta t_j + 1}
+    {\Gamma}^{(j)}_{g\p\rarr g} = \sum_{k=1}^6 \chi_{g, k}\frac{\lambda_k\Delta t_j \beta_{g\p, k}}{\lambda_k \Delta t_j + 1}
 \end{equation}
 
 \begin{equation}
-    \overline{q}^{(j+1)}_{del, g}(x, \mu) = \frac{1}{2}\sum_{k=1}^6 \lambda_k \chi_{g, k} \left(\frac{C^{(j)}}{\lambda_k \Delta t_j + 1} \right).
+    q^{\chi,(j)}_{del, g}(x, \mu) = \frac{1}{2}\sum_{k=1}^6 \lambda_k \chi_{g, k} \left(\frac{C^{(j-1)}}{\lambda_k \Delta t_j + 1} \right).
 \end{equation}
 
-Here, $\overline{q}^{(j+1)}$ represents the decay of precursors that existed in time step $j$, and ${\Gamma}^{(j+1)}_{g\p\rarr g}$ represents the proportion of fissions in group $g\p$, during the time step $\Delta t_j$, whose delayed neutrons decay during the same time step (immediate precursor decay).
+Here, $q^{\chi,(j)}_{del}$ represents the decay of precursors that existed in time step $j$, and ${\Gamma}^{(j)}_{g\p\rarr g}$ represents the proportion of fissions in group $g\p$, during the time step $\Delta t_j$, whose delayed neutrons decay during the same time step (immediate precursor decay).
 
-\subsection{Equivalent steady-state transport problem with delayed neutrons}
+\subsubsection{Equivalent steady-state transport problem with delayed neutrons}
 
 Adding \cref{eq:delayed-source} to \cref{eq:equivalent-prompt-transport,}, the quasi-steady state transport equation to be solved at each time step, including the effect of delayed neutrons, is
 
 \begin{subequations}\label{eq:equivalent-steady-with-delayed}
    \begin{multline}
-        \left[ \mu \ddx + \hat{\sigma}^{(j+1)}_{t, g} \right]\psi^{(j+1)}_g(x, \mu, E) =\\
-        \frac{\chi_g}{2}\sum_{g\p = 1}^{N_g} (1- \beta_{g\p})\nu\sigma^{(j+1)}_{f, g\p}(x) \phi^{(j+1)}_{g\p}(x) + \frac{1}{2}\sum_{g\p = 1}^{N_g} \left(\sigma^{(j+1)}_{s, g\p \rarr g}(x) + {\Gamma}^{(j+1)}_{g\p\rarr g} \nu \sigma_{f, g\p} \right)\phi_{g\p}^{(j+1)}(x)\\
-          +\hat{q}^{(j+1)}_{g}(x, \mu)+ \overline{q}^{(j+1)}_{del, g}(x, \mu), \\
+        \left[ \mu \ddx + \hat{\sigma}^{(j)}_{t, g} \right]\psi^{(j)}_g(x, \mu, E) =\\
+        \frac{\chi_g}{2}\sum_{g\p = 1}^{N_g} (1- \beta_{g\p})\nu\sigma^{(j)}_{f, g\p}(x) \phi^{(j)}_{g\p}(x) + \frac{1}{2}\sum_{g\p = 1}^{N_g} \left(\sigma^{(j)}_{s, g\p \rarr g}(x) + {\Gamma}^{(j)}_{g\p\rarr g} \nu \sigma_{f, g\p} \right)\phi_{g\p}^{(j+1)}(x)\\
+          +\hat{q}^{(j)}_{g}(x, \mu)+ q^{\chi,(j)}_{del, g}(x, \mu), \\
         g = 1, \dots, N_g,\; j=1, \dots N_j,\; x \in [0, X],  \;\mu \in [-1, 1]
     \end{multline}
     \begin{equation}
-        \phi^{(j+1)}_g(x) = \int\limits_{-1}^1 d\mu\; \psi^{(j+1)}_g(x, \mu)
+        \phi^{(j)}_g(x) = \int\limits_{-1}^1 d\mu\; \psi^{(j+1)}_g(x, \mu)
     \end{equation}
     \begin{equation}
-        \psi^{(j+1)}_g(0, \mu) = \psi_g^{+}(\mu, t_{j+1}), \quad \mu > 0
+        \psi^{(j)}_g(0, \mu) = 0, \quad \mu > 0
     \end{equation}
     \begin{equation}
-        \psi^{(j+1)}_g(X, \mu) = \psi_g^{-}(\mu, t_{j+1}), \quad \mu < 0
+        \psi^{(j)}_g(X, \mu) = 0, \quad \mu < 0
     \end{equation}
 \end{subequations}
 
@@ -208,14 +226,14 @@ where
 After solving for the neutron distribution, the precursor distribution can be recovered using \cref{eq:precursor-algebra}.
 
 
-\subsection{Multigroup Low-Order Quasidiffusion Equations}
+\subsubsection{Multigroup Low-Order Quasidiffusion Equations}
 
 Taking the zeroth and first spatial moments ($\int \cdot \,d\mu$ and $\int \mu \cdot d\mu$) of \cref{eq:equivalent-steady-with-delayed} (omitting $j+1$ index) yields
 
-\begin{subequations}
+\begin{subequations}\label{eq:MLOQD}
     \begin{multline}
         \ddx J_g(x) + \sigma_{t, g}\phi_g(x) = \chi_g \overline{(1-\beta)\nu\sigma_{f}}\phi \\
-        +  \sum_{g\p = 1}^{N_g} \left(\sigma_{s, g\p \rarr g} + {\Gamma}_{g\p\rarr g} \nu \sigma_{f, g\p} \right)\phi_{g\p}(x) + \hat{Q}_g(x) + \overline{Q}_{del, g}
+        +  \sum_{g\p = 1}^{N_g} \left(\sigma_{s, g\p \rarr g} + {\Gamma}_{g\p\rarr g} \nu \sigma_{f, g\p} \right)\phi_{g\p}(x) + \hat{Q}_g(x) + Q^\chi_{del, g}
     \end{multline}
     \begin{equation}
         \ddx (E_g \phi_g) + \sigma_{t, g}J_g = \tilde{q}_g
@@ -223,19 +241,18 @@ Taking the zeroth and first spatial moments ($\int \cdot \,d\mu$ and $\int \mu \
     \begin{equation}
         J_g(0) = C^b_{0, g}\phi_g(0), \qquad J_g(X) = C^b_{X, g}\phi_g(X)
     \end{equation}
-    
 \end{subequations}
 
-where the initial conditions are derived from taking the zeroth and first spatial moments of $\psi^0$ and
+and the initial conditions are derived from taking the zeroth and first spatial moments of $\psi^0$ and
 
 \begin{equation}
     \hat{Q}_g(x) = \left(2 q_g(x) + \frac{1}{v_g \Delta t_j}\phi_g^{(j)}(x) \right)
 \end{equation}
 \begin{equation}
-    \overline{Q}_{del, g} = \sum_{k=1}^6 \lambda_k \chi_{g, k} \left(\frac{C^{(j)}}{\lambda_k \Delta t_j + 1} \right)
+    Q^\chi_{del, g} = \sum_{k=1}^6 \lambda_k \chi_{g, k} \left(\frac{C_k^{(j)}}{\lambda_k \Delta t_j + 1} \right)
 \end{equation}
 \begin{equation}
-    \tilde{q}_g = \frac{1}{v_g \Delta t_j}J^{(j)}(x)
+    \tilde{q}_g = \frac{1}{v_g \Delta t_j}J_g^{(j)}(x)
 \end{equation}
         
 and
@@ -253,6 +270,86 @@ The nonlinear closure term (Eddington Factor) is
 \begin{equation}
     E_g = \frac{\int\limits_{-1}^1 \mu^2 \psi_g d \mu}{\int\limits_{-1}^1 \psi_g d\mu}
 \end{equation}
+
+and the boundary factors are
+
+\begin{align}
+    C_{0, g}^b &= \frac{\int_{-1}^{0} \mu \psi_g(0, \mu)d\mu}{\int_{-1}^{0} \psi_g(0, \mu)d\mu}\\
+    C_{X, g}^b &= \frac{\int_{0}^{1} \mu \psi_g(X, \mu)d\mu}{\int_{0}^{1} \psi_g(X, \mu)d\mu}.
+\end{align}
+
+
+\subsubsection{Grey Low-Order Quasidiffusion Equations}
+
+Summing \Cref{eq:MLOQD} over all energy groups yields
+
+\begin{subequations}
+    \begin{equation}
+        \frac{\partial J}{\partial x} + \left(\overline{\sigma}_a - \overline{(1-\beta)\nu\sigma_f} \right)\phi = \overline{\hat{Q}} + \overline{Q^\chi}_{del}
+    \end{equation}
+    \begin{equation}
+        \ddx \left(\overline{E}\phi \right) + \overline{\sigma}_{tr}J + \overline{\zeta}\phi = \overline{\tilde{q}}
+    \end{equation}
+    \begin{equation}
+        J(0) = \overline{C}^b_0\phi(0)    , \quad J(X) = \overline{C}^b_X\phi(X)
+    \end{equation}
+\end{subequations}
+
+where 
+
+\begin{equation}
+    \overline{\sigma}_a = \frac{\sum_{g\p} \left[ \sigma_{t, g\p} - \sum_{g}\left(\sigma_{s, g\p\rarr g} + \Gamma_{g\p \rarr g}\nu\sigma_{f, g\p} \right)\right] \phi_{g\p}}{\sum_{g\p}{\phi_{g\p}}}
+\end{equation}
+\begin{equation}
+    \overline{\hat{Q}} = {\sum_g \hat{Q}_g}, \qquad \overline{Q^\chi}_{del} = {\sum_g Q^\chi_{del, g}}
+\end{equation}
+\begin{equation}
+    \overline{E} = \frac{\sum_g E_g \phi_g}{\sum_g \phi_g}
+\end{equation}
+\begin{equation}
+    \overline{\sigma}_{tr} = \frac{\sum_{g}\sigma_{t, g}|J_g|}{\sum_g |J_g|}
+\end{equation}
+\begin{equation}
+    \overline{\tilde{q}} = \sum_g \tilde{q}_g
+\end{equation}
+
+and $\overline{\zeta}\phi$ is a correction term accounting for the absolute value of current introduced in $\overline{\sigma}_{tr}$,
+
+\begin{equation}
+    \overline{\zeta} = \frac{\sum_g \left(\sigma_{t, g} - \overline{\sigma}_{tr} \right)J_g}{\sum_g \phi_g}.
+\end{equation}
+
+\subsubsection{Grey Coefficient Derivatives}
+
+The grey coefficients $\overline{\sigma}_a,\, \overline{(1-\beta)\nu\sigma_f},\,\overline{\sigma}_{tr},$ and $\overline{\zeta}$ are all temperature- and power-dependent. Then their temperature derivatives, needed for the NILO method, are
+
+\begin{subequations}\label{eq:grey-ddT}
+    \begin{equation}
+        \dot{\overline{\sigma}}_{a, T} = \frac{1}{{\sum_{g}\phi_g}}\sum_{g\p = 1}^{N_g} {\phi_{g\p}} \left(\ddT \sigma_{t, g\p} + \sum_g \left(\ddT \sigma_{g\p\rarr g} + \Gamma_{g\p \rarr g}\ddT\nu\sigma_{f,g\p} \right) \right)
+    \end{equation}
+
+    \begin{equation}
+        \dot{\overline{(1-\beta)\nu\sigma_f}}_{T} = \frac{1}{{\sum_{g}\phi_g}} \sum_{g} \phi_g(1-\beta_g)\ddT \nu\sigma_{f, g}
+    \end{equation}
+
+    \begin{equation}
+        \dot{\overline{\sigma}}_{tr, T}= \frac{1}{{\sum_{g}|J_g|}} \sum_g |J_g|\ddT \sigma_{t, g}
+    \end{equation}
+
+    \begin{equation}
+        \dot{\overline{\zeta}}_T = \frac{1}{{\sum_{g}\phi_g}} \sum_{g} J_g \left(\ddT \sigma_{t, g} - \dot{\overline{\sigma}}_{tr} \right)
+    \end{equation}
+\end{subequations}
+
+The power derivatives $\dot{\overline{\sigma}}_F = \frac{\partial}{\partial f}\overline{\sigma}$ are defined in the same way, ignoring weight-function ($\phi_g,\, |J_g|$) dependence on reaction rate (since only an approximate derivative is needed), except for the average prompt fission cross section, which is strongly dependent on fission rate,
+
+\begin{equation}
+    \dot{\overline{(1-\beta)\nu\sigma_f}}_{F} = \frac{1}{\sum_g \phi_g}.
+\end{equation}
+
+Note that the derivatives of augmented total cross section are equal to the derivatives of the unaltered total cross section.
+
+
 
 \subsection{Advection-diffusion equation}
 
@@ -303,12 +400,115 @@ For this study, the macroscopic feedback will be modeled with
 
 for each reaction $u$, where  $\kappa, \sigma_{u, 0}, \sigma_{u, 1, d}, \sigma_{u, 1, b}, T_{d, 0},$ and $T_0$ are material constants, defined for each neutron energy group $g$.
 
+
+
+
+
+
 \section{MNP Method}
+
+The MNP method~\cite{tamang2014multilevel} is a method for efficient coupling of multigroup neutron transport with coupling and precursor equations. It is based on the Multilevel nonlinear Quasidiffusion (QD) equations for solving the neutron transport equation in single-physics.
+
+The method makes no pysical approximation and its use of an exact projective operator makes even the innermost level equivalent to solving the high-order transport equation. It effectively reduces the high ($x\times\mu\times E$) dimensionality of the transport problem to the dimensionality of the TH operator ($x$ only). The method accelerates transport iterations and converges faster than the FPI-QD method.
 
 \subsection{Basic method details}
 
+The FPI-QD method is similar to the FPI-CMFD method described in~\cite{adamowicz2021nilo,adamowicz2023nilo}, where each outer iteration consists of a cross section evaluation, solution of the transport equation accelerated by QD, then TH solution to yield $T$.
+
+This FPI-QD method converges at the same rate as any other FPI multiphysics method (since the outer iterations are equivalent), though the solution of the transport equation is accelerated. FPI may be unstable and is slow to converge~\cite{adamowicz2021nilo}.
+
+The MNP method instead couples the TH equation with the GLOQD equations. In each outer iteration, the high-order transport problem is used to form a projective operator which closes the MLOQD equations, whose solution is used to form the GLOQD equations. The coupled system of GLOQD, PCB, and HT equations is then solved with Newton iterations~\cite{ragusa2009consistent}. 
+
+On each Newton iteration, the iterate is updated with
+
+\begin{equation}
+    \vec{x}_{p+1} = \vec{x}_p - \mat{J}_F(\vec{x}_p)^{-1} F(\vec{x}_n)
+\end{equation}
+
+where $F$ represents the residual operator of all coupled equations, $\mat{J}_F$ is the Jacobian which may be explicitly formed as in~\cite{tamang2014multilevel} or replaced with a JFNK approach, and 
+
+\begin{equation}
+    \vec{x} = \begin{bmatrix}
+        \phi(x)\\
+        J(x)\\
+        \overline{\sigma}_a(x)\\
+        \overline{(1-\beta)\nu\sigma_f}(x)\\
+        \overline{\sigma}_{tr}(x)\\
+        \overline{\zeta}(x)\\
+        T(x)
+    \end{bmatrix}
+\end{equation}
+
 \subsection{Iterative Algorithms}
 
+The iterative algorithm for FPI-QD is shown in and the algorithm for MNP is shown in 
+
+\SetKwInput{Input}{Input}
+\begin{algorithm}[h]\caption{QD Fixed-Point Iteration Multiphysics}\label{alg:fpi-qd}
+    \Input{f}
+    \While{TODO Temperature is not converged}{
+        \While{Scalar flux is not converged}{
+
+            \While{TODO Angular flux is not converged}{
+                Sweep Transport\;
+            }
+
+            \While{TODO Scalar Flux is not converged}{
+                Solve MLOQD Equations\;
+                Generate Grey coefficients\;
+                Solve GLOQD Equations\;
+            }
+        }
+        Evalute TH Equations\;
+    }  
+\end{algorithm}
+
+
+\begin{algorithm}[h]\caption{Multilevel Nonlinear Projective Method}\label{alg:mnp}
+    \Input{$\psi_{g,m}^{(0)}, T^{(0)}, C_{k}^{(0)}$}
+    $j = 0$\;
+    \While{$t^{j} \leq t^{end}$}{
+        $j \gets j+1$\;
+        $\Gamma_{g\p\rarr g}^{j}, q_{del, g}^{\chi, j}, Q_{del, g}^{\chi, j} \gets $ implicit precursor terms using $C_k^{j-1}$\;
+        $\hat{q}_g^{j} , \hat{Q}_g^{j}, \tilde{q}_g \gets$ augmented sources from temporal discretization\;
+        $n = 0$\;
+        $\phi^{j, (0)} \gets \phi^{j-1};\; T^{j, (0)} \gets T^{j-1};\; \sigma_{u, g}^{j, (0)} \gets \sigma_{u, g}^{j-1}$\;
+        Initialize closures from previous time step\;
+        \While{$\norm{1 - \phi^{j, (n)}/\phi^{j, (n-1)}}_\infty > \vareps_{\phi, n}$ or $\norm{1 - T^{j, (n)}/T^{j, (n-1)}}_\infty> \vareps_{T, n}$}{
+            $n \gets n+1$\;
+            \If{$n > 1$}{
+                ${\sigma}^{j, (n-1)}_{u, g} = \sigma_{u, g}\left(T^{j, (n-1)}, f^{j, (n-1)} \right); \hat{\sigma}_{t, g}^{j, (n-1)} = \sigma_{t, g}^{j, (n-1)} + \frac{1}{v_g \Delta t_j}$\;
+                \For(comment){$g = 1,\dots, N_g$}{
+                    $\psi_g^{j, (n)} \gets$ high-order transport equation using $\phi_g^{j, (n-1)}$\;
+                }
+                $\overline{E}_g^{j, (n)}, E_g^{b; j, (n)}, C_g^{\pm; j, (n)}, G_g^{j, (n)} \gets$ Closure equations using $\psi_g^{j, (n)}$\;
+            }
+            
+            $s = 0$\;
+            $\phi^{j, (n, 0)} \gets \sum_g \phi_g^{j, (n)}$\;
+            \While{$\norm{1 - \phi^{j, (n, s)}/\phi^{j, (n, s-1)}}_\infty > \vareps_{\phi, s}$ or $\norm{1 - T^{j, (n, s)}/T^{j, (n, s-1)}}_\infty> \vareps_{T, s}$}{
+                $s \gets s + 1$\;
+                $\sigma^{j, (n, s-1)}_{u, g} = \sigma_{u, g}\left(T^{j, (n, s-1)}, f^{j, (n, s-1)} \right)$\;
+                $\phi_g^{j, (n, s)}, J_g^{j, (n, s)} \gets$ MLOQD Equations using $\sigma^{j, (n, s-1)}_{u, g}, \overline{E}_g^{j, (n)}, E_g^{b; j, (n)}, C_g^{\pm; j, (n)}, G_g^{j, (n)}$\;
+                Calculate Grey coefficients\;
+                $l = 0$\;
+                $\phi^{j, (n, s, 0)} \gets \sum_g \phi_g^{j, (n, s)}$\;
+                \While{$\norm{1 - \phi^{j, (n, s, l)}/\phi^{j, (n, s, l-1)}}_\infty > \vareps_{\phi, l}$ or $\norm{1 - T^{j, (n, s)}/T^{j, (n, s-1)}}_\infty> \vareps_{T, l}$}{
+                    $l \gets l + 1$\;
+                    Newton Iterations\;
+                    Form Jacobian\;
+                    Solve linear system\;
+                }
+                $\phi_g^{j, (n, s)}\gets (\phi_g^{j, (n, s, l)}/\sum_g \phi_g^{j, (n, s, l)})\phi^{j, (n, s, l)}$\;
+                $T^{j, (n, s)}\gets T^{j, (n, s, l)}$\;
+            }
+            $\phi_g^{j, (n)}\gets (\phi_g^{j, (n, s)}/\sum_g \phi_g^{j, (n, s)})\phi^{j, (n, s)}$\;
+            $T^{j, (n)}\gets T^{j, (n, s)}$\;
+        }
+        $C_{d, k}^j \gets $ Analytic precursor recovery using $\phi_g^j$\;
+    }
+    
+\end{algorithm}
 
 \section{NILO-MNP method}
 
@@ -316,24 +516,423 @@ for each reaction $u$, where  $\kappa, \sigma_{u, 0}, \sigma_{u, 1, d}, \sigma_{
 
 \subsection{Iterative Algorithm}
 
+
+
+
+
 \clearpage
+\bibliographystyle{ieeetr}
+\bibliography{references.bib}
+
+
 \begin{appendices}
 
-\section{LD Discretization of Neutron Transport equation}
+\section{LD Discretization of Neutron Transport equation}\label{sec:LD-transport}
 
-\section{FV Discretization of advection-diffusion equation}
+The quasi-steady state transport equation for group $g$ obtained using the backward Euler temporal discretization is
 
-\section{LD Discretization of QD equations}
+\begin{subequations}
+    \begin{multline}
+        \mu \ddx \psi_g(x, \mu) + \hat{\sigma}_{t, g}\psi_g(x, \mu) = q_g(x, \mu)\\
+         x \in [0, X], \mu \in [-1, 1], g = 1, \dots, N_g
+    \end{multline}
+    \begin{gather}
+        \psi(0, \mu) = \psi^+, \qquad \mu > 0\\
+        \psi(X, \mu) = \psi^-, \qquad \mu < 0
+    \end{gather}
+    
+\end{subequations}
+
+where the time index has been surpressed, and 
+
+\begin{multline}
+    q_g(x, \mu) = \frac{\chi_g}{2}\sum_{g\p = 1}^{N_g} (1- \beta_{g\p})\nu\sigma_{f, g\p}(x) \phi_{g\p}(x) + \frac{1}{2}\sum_{g\p = 1}^{N_g} \left(\sigma_{s, g\p \rarr g}(x) + {\Gamma}_{g\p\rarr g} \nu \sigma_{f, g\p} \right)\phi_{g\p}(x)\\
+          +\hat{q}^{(j+1)}_{g}(x, \mu)+ \overline{q}_{del, g}(x, \mu)
+\end{multline}
+
+Here $\hat{\sigma}_{t, g}$ and $\hat{q}$ are the augmented cross sections from the time discretization, and $\hat{\sigma}_{s, g\p \rarr g}$ is the effective scattering cross section from precursor decay.
+
+Then let $\mathbb{V}_h$ be the space of spatially piecewise linear functions on grid $\{\kappa_i \}_{i=1}^{N_i}$, where
+
+\begin{gather}
+    \kappa_i = [x_{i-1/2}, x_{i+1/2}],\\
+    x_{1/2} = 0,\\
+    x_{N_i - 1/2} = X.
+\end{gather}
+
+Then let $\psi, \phi$, and $q$ lie in $\mathbb{V}_h$ and suppose all coefficients are constant within each cell (note that this requires cross section evaluation using average temperature in each cell). Each function can be represented by the basis functions in each cell
+
+\begin{equation}
+    b_{L, i} = \frac{x_{i+1/2} - x}{\Delta x_i}, \qquad b_{R, i} = \frac{x - x_{i-1/2}}{\Delta x},
+\end{equation}
+
+Integrating over each basis function in each cell, applying the divergence theorem to the streaming term, and using the upwind flux defined by
+
+\begin{equation}
+    \psi_{g, L, i}^b = \begin{cases}
+        \psi_{ g, R, i-1}, & \mu > 0\\
+        \psi_{g, L, i}, & \mu < 0
+    \end{cases}, \quad \psi_{m, g, R, i}^b = \begin{cases}
+        \psi_{ g, R, i}, & \mu > 0\\
+        \psi_{ g, L, i+1}, & \mu < 0,
+    \end{cases}
+\end{equation}
+
+the interior-cell equations are finally
+
+\begin{subequations}
+    \begin{equation}
+        \mu\left[ \psi_{g, R, i}^b - \psi_{g, L, i}^b \right] + \frac{1}{2}\mu \left(\psi_{g, L, i} + \psi_{g, R, i} \right) + \hat{\sigma}_{t, g}\frac{1}{6}\Delta x_i (2 \psi_{g, L, i} + \psi_{g, R, i}) = \frac{1}{6}\Delta x_i (2 q_{g, L, i} + q_{g, R, i})
+    \end{equation}
+    \begin{equation}
+        \mu\left[ \psi_{g, R, i}^b - \psi_{g, L, i}^b \right] - \frac{1}{2}\mu \left(\psi_{g, L, i} + \psi_{g, R, i} \right) + \hat{\sigma}_{t, g}\frac{1}{6}\Delta x_i ( \psi_{g, L, i} + 2\psi_{g, R, i}) = \frac{1}{6}\Delta x_i ( q_{g, L, i} + 2 q_{g, R, i})
+    \end{equation}
+\end{subequations}
+
+for $i=2, \dots, N_x -1$, where $\mu$ dependence of $\psi$ and $q$ have been surpressed. Applying the boundary conditions gives the equations for the left face and $\mu>0$ directions,
+
+\begin{subequations}
+    \begin{equation}
+        \mu\left[ \psi_{g, R, i}^b  \right] + \frac{1}{2}\mu \left(\psi_{g, L, i} + \psi_{g, R, i} \right) + \hat{\sigma}_{t, g}\frac{1}{6}\Delta x_i (2 \psi_{g, L, i} + \psi_{g, R, i}) = \frac{1}{6}\Delta x_i (2 q_{g, L, i} + q_{g, R, i})+ \mu \psi_g^+
+    \end{equation}
+    \begin{multline}
+        \mu\left[ \psi_{g, R, i}^b  \right] - \frac{1}{2}\mu \left(\psi_{g, L, i} + \psi_{g, R, i} \right) + \hat{\sigma}_{t, g}\frac{1}{6}\Delta x_i ( \psi_{g, L, i} + 2\psi_{g, R, i}) = \frac{1}{6}\Delta x_i ( q_{g, L, i} + 2 q_{g, R, i}) + \mu \psi_g^+\\
+        i=1, \mu > 0
+    \end{multline}
+\end{subequations}
+
+and for the right face with $\mu<0$,
+
+\begin{subequations}
+    \begin{equation}
+        \mu\left[  - \psi_{g, L, i}^b \right] + \frac{1}{2}\mu \left(\psi_{g, L, i} + \psi_{g, R, i} \right) + \hat{\sigma}_{t, g}\frac{1}{6}\Delta x_i (2 \psi_{g, L, i} + \psi_{g, R, i}) = \frac{1}{6}\Delta x_i (2 q_{g, L, i} + q_{g, R, i}) - \mu \psi_g^-
+    \end{equation}
+    \begin{multline}
+        \mu\left[  - \psi_{g, L, i}^b \right] - \frac{1}{2}\mu \left(\psi_{g, L, i} + \psi_{g, R, i} \right) + \hat{\sigma}_{t, g}\frac{1}{6}\Delta x_i ( \psi_{g, L, i} + 2\psi_{g, R, i}) = \frac{1}{6}\Delta x_i ( q_{g, L, i} + 2 q_{g, R, i}) - \mu \psi_g^-\\
+        i=N_x, \mu < 0
+    \end{multline}
+\end{subequations}
+
+\section{LD Discretization of QD equations}\label{sec:LD-QD}
+
+The LD discretization of the QD equations follows the method outlined in~\cite{anistratov2018discontinuous}. The unclosed zeroth and first moment equations are, for group $g$ (using the same terms as \cref{eq:MLOQD}),
+\begin{subequations}
+    \begin{equation}\label{eq:unclosed-zeroth}
+        \ddx J_g(x) + \sigma_{t, g}\phi_g(x) = \chi_g \overline{(1-\beta)\nu\sigma_{f}}\phi
+        +  \sum_{g\p = 1}^{N_g} \sigma_{ g\p \rarr g} \phi_{g\p}(x) + Q_g(x)
+    \end{equation}
+    \begin{equation}\label{eq:unclosed-first}
+        \ddx F(x) + \sigma_{t, g}J_g = q_g
+    \end{equation}
+    \begin{equation}
+        J_g(0) = C^b_{0, g}\phi_g(0), \qquad J_g(X) = C^b_{X, g}\phi_g(X)
+    \end{equation}
+\end{subequations}
+
+where here $\sigma_{g\p \rarr g}$ represents the total transfer cross section including both scattering, $Q$ and $q$ represent precursor decay, indepdent source, and source from the previous time step, and  $F$ is the second angular moment,
+
+\begin{equation}
+    F(x) = \int\limits_{-1}^1 \mu^2 \psi(x, \mu)d\mu
+\end{equation}
+
+We apply the same spatial grid $\{\kappa_i\}_{i=1}^{i=N_x}$ as for the high-order transport equation, and suppose all unknowns and sources belong to the same space $\mathbb{V}_h$;
+
+\begin{equation}
+    \phi_{g,i}(x) = \sum_{c=L,R}\phi_{g, i, c}b_{i,c}(x)
+\end{equation}
+
+\begin{equation}
+    J_{g,i}(x) = \sum_{c=L,R}J_{g, i, c}b_{i,c}(x)
+\end{equation}
+
+Multiplying \cref{eq:unclosed-zeroth,eq:unclosed-first} by the basis functions and integrating over each cell (and applying the divergence theorem on spatial derivative terms) yields
+
+
+\begin{subequations}\label{eq:qd-derivation-step1}
+    \begin{multline}
+        -J_g^b(x_{i-1/2}) + \frac{1}{2}\left(J_{g, i, L} + J_{g, i, R} \right) + \sigma_{t, g}\frac{\Delta x}{6}\left(2\phi_{g, i, L} + \phi_{g, i, R} \right) = \chi_g \overline{(1-\beta)\nu\sigma_f} \frac{\Delta x}{6}\left(2\phi_{i, L} + \phi_{i, R} \right) \\
+        + \sum_{g\p = 1}^{N_g}\sigma_{ g\p \rarr g} \frac{\Delta x}{6}\left(2\phi_{g\p, i, L} + \phi_{g\p, i, R} \right) + \frac{\Delta x}{6}(2Q_{g, i, L} + Q_{g, i, R})
+    \end{multline}
+    \begin{multline}
+        J_g^b(x_{i+1/2}) - \frac{1}{2}\left(J_{g, i, L} + J_{g, i, R} \right) + \sigma_{t, g}\frac{\Delta x}{6}\left(\phi_{g, i, L} + 2\phi_{g, i, R} \right) = \chi_g \overline{(1-\beta)\nu\sigma_f} \frac{\Delta x}{6}\left(\phi_{i, L} + 2\phi_{i, R} \right) \\
+        + \sum_{g\p = 1}^{N_g}\sigma_{ g\p \rarr g} \frac{\Delta x}{6}\left(\phi_{g\p, i, L} + 2\phi_{g\p, i, R} \right) + \frac{\Delta x}{6}(Q_{g, i, L} + 2Q_{g, i, R})
+    \end{multline}
+    \begin{equation}
+        -F_g^b(x_{i-1/2}) + \frac{1}{\Delta x}\int_{\kappa_i} F_i(x)dx + \sigma_{t, g}\frac{\Delta x}{6}\left(2J_{g, i, L} + J_{g, i, R} \right) = \frac{\Delta x}{6}\left(2q_{g, i, L} + q_{g, i, R} \right)
+    \end{equation}
+    \begin{equation}
+        F_g^b(x_{i+1/2}) - \frac{1}{\Delta x}\int_{\kappa_i} F_i(x)dx + \sigma_{t, g}\frac{\Delta x}{6}\left(J_{g, i, L} + 2J_{g, i, R} \right) = \frac{\Delta x}{6}\left(q_{g, i, L} + 2q_{g, i, R} \right)
+    \end{equation}
+\end{subequations}
+
+where the mesh is uniform and spatial index has been surpressed from coefficients (the cross sections must be constant in each cell).
+
+The equations are closed by defining the integrated second moment as
+
+\begin{equation}
+    \int_{\kappa_i} F_i(x)dx = \overline{E}_{g, i} \int_{\kappa_i} \phi_{g, i}(x)dx
+\end{equation}
+
+where the cell-averaged Eddington factor is
+
+\begin{equation}
+    \overline{E}_{g, i} = \frac{\int_{\kappa_i} dx\int_{-1}^1 d\mu\, \mu^2 \psi_{g, i}(x, \mu)}{\int_{\kappa_i} dx\int_{-1}^1 d\mu\, \psi_{g, i}(x, \mu)}.
+\end{equation}
+
+The second moment at the boundary is defined with
+
+\begin{equation}
+    F_g^b(x_{i+1/2}) = E_{g, i+1/2}^b \phi_{g, i+1/2}^b
+\end{equation} 
+
+where the cell-edge Eddington factor is
+
+\begin{equation}
+    E_{g, i+1/2}^b = \frac{\int_{-1}^0 \mu^2 \psi_{g, i+1}(x_{i+1/2}, \mu)d\mu + \int_{0}^{1}\mu^2 \psi_{g, i}(x_{i+1/2}, \mu)d\mu}{\int_{-1}^0  \psi_{g, i+1}(x_{i+1/2}, \mu)d\mu + \int_{0}^{1}\psi_{g, i}(x_{i+1/2}, \mu)d\mu}.
+\end{equation}
+
+The Miften-Larsen interface conditions \cite{anistratov2018discontinuous} are used,
+
+\begin{subequations}
+    \begin{multline}
+        \phi_{g, i+1/2}^b = \phi_{g, i}^+(x_{i+1/2}) + \phi_{g, i+1}^-(x_{i+1/2})\\
+        = \frac{1}{C_{g, i}^+(x_{i+1/2})}\left(J_{g, i, R} + G_{g, i}(x_{i+1/2})\phi_{g, i, R} \right) \\
+        + \frac{1}{C_{g, i+1}^-(x_{i+1/2})}\left(J_{g, i+1, L} + G_{g, i+1}(x_{i+1/2})\phi_{g, i+1, L} \right)
+    \end{multline}
+    \begin{multline}
+        J_{g, i+1/2}^b = J_{g, i}^+(x_{i+1/2}) + J_{g, i+1}^-(x_{i+1/2})
+        \\ = \frac{1}{2}\left(J_{g, i, R} + J_{g, i+1, L} + G_{g, i}(x_{i+1/2})\phi_{g, i, R} -G_{g, i+1}(x_{i+1/2})\phi_{g, i+1, L} \right)
+    \end{multline}
+        
+\end{subequations}
+
+where
+
+\begin{equation}
+    G_{g, i}(x_{i+1/2}) = \frac{\int_{-1}^1 |\mu| \psi_{g, i, R}(\mu)d\mu}{\int_{-1}^1 \psi_{g, i, R}(\mu)d\mu}
+\end{equation}
+
+\begin{equation}
+    C_{g, i}^+(x_{i+1/2}) = \frac{\int_{0}^1 \mu \psi_{g, i, R}(\mu) d\mu}{\int_{0}^1  \psi_{g, i, R}(\mu) d\mu}
+\end{equation}
+
+\begin{equation}
+    C_{g, i}^+(x_{i+1/2}) = \frac{\int_{-1}^0 \mu \psi_{g, i, R}(\mu) d\mu}{\int_{-1}^0  \psi_{g, i, R}(\mu) d\mu}
+\end{equation}
+
+Then \cref{eq:qd-derivation-step1} becomes, using these closure and interface terms,
+
+\begin{subequations}\label{eq:LD-quasidiffusion-interior}
+    \begin{multline}\label{eq:left-zeroth}
+        -\left[\frac{1}{2}\left(J_{g, i-1, R} + J_{g, i, L} + G_{g, i-1}(x_{i-1/2})\phi_{g, i-1, R} - G_{g, i}(x_{i-1/2})\phi_{g, i, L} \right) \right] \\
+        + \frac{1}{2}\left(J_{g, i, L} + J_{g, i, R} \right) + \sigma_{t, g}\frac{\Delta x}{6}\left(2\phi_{g, i, L} + \phi_{g, i, R} \right) = \chi_g \overline{(1-\beta)\nu\sigma_f} \frac{\Delta x}{6}\left(2\phi_{i, L} + \phi_{i, R} \right) \\
+        + \sum_{g\p = 1}^{N_g}\sigma_{ g\p \rarr g} \frac{\Delta x}{6}\left(2\phi_{g\p, i, L} + \phi_{g\p, i, R} \right) + \frac{\Delta x}{6}(2Q_{g, i, L} + Q_{g, i, R})
+    \end{multline}
+    \begin{multline}\label{eq:right-zeroth}
+        \left[\frac{1}{2}\left(J_{g, i, R} + J_{g, i+1, L} + G_{g, i}(x_{i+1/2})\phi_{g, i, R} -G_{g, i+1}(x_{i+1/2})\phi_{g, i+1, L} \right) \right] \\
+        - \frac{1}{2}\left(J_{g, i, L} + J_{g, i, R} \right) + \sigma_{t, g}\frac{\Delta x}{6}\left(\phi_{g, i, L} + 2\phi_{g, i, R} \right) = \chi_g \overline{(1-\beta)\nu\sigma_f} \frac{\Delta x}{6}\left(\phi_{i, L} + 2\phi_{i, R} \right) \\
+        + \sum_{g\p = 1}^{N_g}\sigma_{ g\p \rarr g} \frac{\Delta x}{6}\left(\phi_{g\p, i, L} + 2\phi_{g\p, i, R} \right) + \frac{\Delta x}{6}(Q_{g, i, L} + 2 Q_{g, i, R})
+    \end{multline}
+    \begin{multline}\label{eq:left-first}
+        -E_{g, i-1/2}^b \left[\frac{1}{C_{g, i-1}^+(x_{i-1/2})} \left(J_{g, i-1, R} + G_{g, i-1}(x_{i-1/2})\phi_{g, i-1, R} \right) \right.\\
+        \left.+ \frac{1}{C_{g, i}^-(x_{i-1/2})}\left(J_{g, i, L} + G_{g, i}(x_{i-1/2})\phi_{g, i, L} \right)\right] + \frac{1}{2}\overline{E}_{g, i}\left(\phi_{g, i, L} + \phi_{g, i, R} \right) \\
+        + \sigma_{t, g}\frac{\Delta x}{6}\left(2J_{g, i, L} + J_{g, i, R} \right) = \frac{\Delta x}{6}\left(2q_{g, i, L} + q_{g, i, R} \right)
+    \end{multline}
+    \begin{multline}\label{eq:right-first}
+        E_{g, i+1/2}^b \left[\frac{1}{C_{g, i}^+(x_{i+1/2})}\left(J_{g, i, R} + G_{g, i}(x_{i+1/2})\phi_{g, i, R} \right) \right.\\
+        \left.+\frac{1}{C_{g, i+1}^-(x_{i+1/2})}\left(J_{g, i+1, L} + G_{g, i+1}(x_{i+1/2})\phi_{g, i+1, L} \right) \right] - \frac{1}{2}\overline{E}_{g, i}\left(\phi_{g, i, L} + \phi_{g, i, R} \right) \\
+        + \sigma_{t, g}\frac{\Delta x}{6}\left(J_{g, i, L} + 2J_{g, i, R} \right) = \frac{\Delta x}{6}\left(q_{g, i, L} + 2q_{g, i, R} \right)\\
+        i= 2, \dots, N_x - 1
+    \end{multline}
+\end{subequations}
+
+On the leftmost cell, where with vacuum boundary conditions $\phi^+(0) = J^+(0) =0$, \cref{eq:left-zeroth,eq:left-first} are replaced with
+
+\begin{subequations}\label{eq:leftmost-qd}
+    \begin{multline}
+        -\left[\frac{1}{2}\left(J_{g, i, L}  - G_{g, i}(x_{i-1/2})\phi_{g, i, L} \right) \right] \\
+        + \frac{1}{2}\left(J_{g, i, L} + J_{g, i, R} \right) + \sigma_{t, g}\frac{\Delta x}{6}\left(2\phi_{g, i, L} + \phi_{g, i, R} \right) = \chi_g \overline{(1-\beta)\nu\sigma_f} \frac{\Delta x}{6}\left(2\phi_{i, L} + \phi_{i, R} \right) \\
+        + \sum_{g\p = 1}^{N_g}\sigma_{ g\p \rarr g} \frac{\Delta x}{6}\left(2\phi_{g\p, i, L} + \phi_{g\p, i, R} \right) + \frac{\Delta x}{6}(2Q_{g, i, L} + Q_{g, i, R})
+    \end{multline}
+    \begin{multline}
+        -E_{g, 0}^b \left[ \frac{1}{C_{g, i}^-(x_{i-1/2})}\left(J_{g, i, L} + G_{g, i}(x_{i-1/2})\phi_{g, i, L} \right)\right] + \frac{1}{2}\overline{E}_{g, i}\left(\phi_{g, i, L} + \phi_{g, i, R} \right) \\
+        + \sigma_{t, g}\frac{\Delta x}{6}\left(2J_{g, i, L} + J_{g, i, R} \right) = \frac{\Delta x}{6}\left(2q_{g, i, L} + q_{g, i, R} \right),\\
+        i=1
+    \end{multline}
+\end{subequations}
+
+where
+
+\begin{equation}
+    E_{g, 0}^b = \frac{\int_{-1}^{0}\mu^2 \psi_{g, i}(x_{i-1/2}, \mu)d\mu}{ \int_{-1}^{0}\psi_{g, i}(x_{i-1/2}, \mu)d\mu}, \qquad i=1
+\end{equation}
+
+and on the rightmost cell, where $\phi^-(X) = J^-(X) = 0$, \cref{eq:right-zeroth,eq:right-first} become
+
+\begin{subequations}\label{eq:rightmost-qd}
+    \begin{multline}
+        \left[\frac{1}{2}\left(J_{g, i, R}  + G_{g, i}(x_{i+1/2})\phi_{g, i, R}  \right) \right] \\
+        - \frac{1}{2}\left(J_{g, i, L} + J_{g, i, R} \right) + \sigma_{t, g}\frac{\Delta x}{6}\left(\phi_{g, i, L} + 2\phi_{g, i, R} \right) = \chi_g \overline{(1-\beta)\nu\sigma_f} \frac{\Delta x}{6}\left(\phi_{i, L} + 2\phi_{i, R} \right) \\
+        + \sum_{g\p = 1}^{N_g}\sigma_{ g\p \rarr g} \frac{\Delta x}{6}\left(\phi_{g\p, i, L} + 2\phi_{g\p, i, R} \right) + \frac{\Delta x}{6}(Q_{g, i, L} + 2 Q_{g, i, R})
+    \end{multline}
+    \begin{multline}
+        E_{g, N_{x}+1/2}^b \left[\frac{1}{C_{g, i}^+(x_{i+1/2})}\left(J_{g, i, R} + G_{g, i}(x_{i+1/2})\phi_{g, i, R} \right) \right] - \frac{1}{2}\overline{E}_{g, i}\left(\phi_{g, i, L} + \phi_{g, i, R} \right) \\
+        + \sigma_{t, g}\frac{\Delta x}{6}\left(J_{g, i, L} + 2J_{g, i, R} \right) = \frac{\Delta x}{6}\left(q_{g, i, L} + 2q_{g, i, R} \right)\\
+        i= 2, \dots, N_x - 1
+    \end{multline}
+\end{subequations}
+
+where 
+
+\begin{equation}
+    E_{g, N_{x}+1/2}^b = \frac{ \int_{0}^{1}\mu^2 \psi_{g, i}(x_{i+1/2}, \mu)d\mu}{ \int_{0}^{1}\psi_{g, i}(x_{i+1/2}, \mu)d\mu}, \qquad i = N_x.
+\end{equation}
+
+\Cref{eq:LD-quasidiffusion-interior,eq:leftmost-qd,eq:rightmost-qd} give the equations for the LDFEM discretization of the QD equations with vacuum boundaries, cellwise constant coefficients, and Miften-Larsen interface conditions.
+
+
+\section{LDFEM Discretization of advection-diffusion equation}\label{sec:LD-advection-diffusion}
+
+The advection-diffusion equation in 1 dimension is
+
+\begin{equation}
+    \left[ r - \ddx k_b \ddx + \dot{m}c_p \ddx \right]T^{(j+1)}(x) = Q(x)
+\end{equation}
+
+where $r$ is the local removal term from the backward Euler temporal discretization. For this model, all coefficients will be spatially constant. For this problem the boundary conditions 
+
+\begin{equation}
+    T(0) = T^{in}, \qquad \left.\frac{d T}{dx}\right|_{x=X} = 0
+\end{equation}
+
+
+will be used. Then let $\mathbb{V}_h$ be the space of spatially piecewise linear functions on grid $\{\kappa_i \}_{i=1}^{N_i}$, where
+
+\begin{gather}
+    \kappa_i = [x_{i-1/2}, x_{i+1/2}],\\
+    x_{1/2} = 0,\\
+    x_{N_i - 1/2} = X
+\end{gather}
+
+with cell width $\Delta x_i$ and cell center $x_i$.
+
+Let $T$ and $Q$ lie in $\mathbb{V}_h$ and suppose all coefficients are constant within each cell. Each function can be represented by the basis functions in each cell using the linear combination
+
+\begin{equation}
+    T_i(x) = \overline{T}_i {b}^z_i(x) + \hat{T}_i{b}^f_i(x)
+\end{equation}
+
+where
+
+\begin{equation}
+    {b}^z_i(x) = 1, \qquad {b}^f_i(x) = \frac{2}{\Delta x_i}(x - x_i)
+\end{equation}
+
+where 
+
+\begin{gather}
+    \int_{\kappa_i} {b}^z_i(x)dx = \Delta x_i\\
+    \int_{\kappa_i}{b}^f_i(x) dx = 0\\
+    \int_{\kappa_i}({b}^z_i(x))^2 dx = \Delta x_i\\
+    \int_{\kappa_i}({b}^f_i(x))^2 dx = \frac{1}{6}\\
+    \int_{\kappa_i}{b}^z_i(x){b}^f_i(x) dx =0
+\end{gather}
+
+
+
+Here $\overline{T}_i$ represents the average value of $T$ in $\kappa_i$ and $\hat{T}_i$ is defined such that the corner values are $\overline{T} \pm \hat{T}$. The advection-diffusion equation is multiplied by each basis function and integrated over the cell,
+
+\begin{equation}
+    r\int_{\kappa_i}T(x)b^d(x)dx - k_b\int_{\kappa_i}\frac{\partial^2 T}{\partial x^2}b^d(x) dx  + \dot{m}c_p\int_{\kappa_i} \frac{\partial T}{\partial x}b^d(x) dx = \int_{\kappa_i}Q(x)b^d(x)dx, d=z,f
+\end{equation}
+
+then integration by parts is used on the derivative terms,
+
+\begin{multline}
+    r\int_{\kappa_i}T(x)b^d(x)dx - k_b \left[\left. b^d(x) \frac{\partial T}{\partial x} \right|_{x_{i-1/2}}^{x_{i+1/2}} - \int_{\kappa_i}\frac{\partial T}{\partial x}\frac{d b^d}{dx}dx \right] \\
+    + \dot{m}c_p \left[ \left. T(x)b^d(x)\vphantom{\frac{}{}}\right|_{x_{i-1/2}}^{x_{i+1/2}} - \int_{\kappa_i} T(x) \frac{d b^d(x)}{dx}dx\right] = \int_{\kappa_i}Q(x)b^d(x) dx, \quad d = z,f
+\end{multline}
+
+Then $T$ inside each integral is expanded in terms of the basis functions,
+
+\begin{subequations}
+    \begin{equation}
+        \Delta x_i r\overline{T}_i - k_b \left[\left.  \frac{\partial T}{\partial x} \right|_{x_{i-1/2}}^{x_{i+1/2}} \right] + \dot{m}c_p \left[ \left. T(x)\vphantom{\frac{}{}}\right|_{x_{i-1/2}}^{x_{i+1/2}} \right] = \Delta x_i \overline{Q}_i
+    \end{equation}
+    \begin{equation}
+        \frac{1}{6} r\hat{T}_i - k_b \left[\left. b^f(x) \frac{\partial T}{\partial x} \right|_{x_{i-1/2}}^{x_{i+1/2}} - \frac{4}{\Delta x_i} \hat{T}_i \right] + \dot{m}c_p \left[ \left. T(x)b^f(x)\vphantom{\frac{}{}}\right|_{x_{i-1/2}}^{x_{i+1/2}} - 2 \overline{T}_i \right] = \frac{1}{6} \hat{Q}_i
+    \end{equation}
+\end{subequations}
+
+Assuming $\dot{m} > 0$ (fluid flow in the $+x$ direction), the temperatures and derivatives at the interfaces are taken to be
+
+\begin{equation}
+    T(x_{i+1/2}) = \overline{T}_i + \hat{T}_i, \qquad T(x_{i-1/2}) = \overline{T}_{i-1} + \hat{T}_{i-1}
+\end{equation}
+
+\begin{gather}
+    \left.\frac{\partial T}{\partial x}\right|_{x_{i+1/2}} =  \left(\frac{\hat{T}_{i+1}}{\Delta x_{i+1}} - \frac{\hat{T}_i}{\Delta x_i} \right)\\
+    \left.\frac{\partial T}{\partial x}\right|_{x_{i-1/2}} =  \left(\frac{\hat{T}_{i}}{\Delta x_{i}} - \frac{\hat{T}_{i-1}}{\Delta x_{i-1}} \right)
+\end{gather}
+
+
+Then the equation for each of the interior cells becomes
+
+\begin{subequations}
+    \begin{equation}
+        \Delta x_i r\overline{T}_i - k_b  \left[ \frac{\hat{T}_{i+1}}{\Delta x_{i+1}}  - 2\frac{\hat{T}_i}{\Delta x_i}+ \frac{\hat{T}_{i-1}}{\Delta x_{i-1}} \right] + \dot{m}c_p \left[ \overline{T}_i + \hat{T}_i - \overline{T}_{i-1} - \hat{T}_{i-1} \right] = \Delta x_i \overline{Q}_i
+    \end{equation}
+    \begin{equation}
+        \frac{1}{6} r\hat{T}_i - k_b \left[\frac{\hat{T}_{i+1}}{\Delta x_{i+1}} +  \frac{\hat{T}_{i-1}}{\Delta x_{i-1}} - \frac{4}{\Delta x_i} \hat{T}_i \right] + \dot{m}c_p \left[ \overline{T}_i + \hat{T}_i + \overline{T}_{i-1} + \hat{T}_{i-1} - 2 \overline{T}_i \right] = \frac{1}{6} \hat{Q}_i
+    \end{equation}
+\end{subequations}
+
+At the left interface, where $T(0) = T^{in}$, we also estimate $\ddx T(0)$ to be $\frac{2}{\Delta x}\hat{T}_1$, and these equations become
+
+\begin{subequations}
+    \begin{equation}
+        \Delta x_i r\overline{T}_i - k_b  \left[ \frac{\hat{T}_{i+1}}{\Delta x_{i+1}} - 3\frac{\hat{T}_{i}}{\Delta x_{i}} \right] + \dot{m}c_p \left[ \overline{T}_i + \hat{T}_i  \right] = \Delta x_i \overline{Q}_i + \dot{m}c_p T^{in}
+    \end{equation}
+    \begin{equation}
+        \frac{1}{6} r\hat{T}_i - k_b \left[\frac{\hat{T}_{i+1}}{\Delta x_{i+1}} + \frac{\hat{T}_i}{\Delta x_i} - \frac{4}{\Delta x_i} \hat{T}_i \right] + \dot{m}c_p \left[ \overline{T}_i + \hat{T}_i  - 2 \overline{T}_i \right] = \frac{1}{6} \hat{Q}_i - \dot{m}c_p T^{in}, \quad i=1
+    \end{equation}
+\end{subequations}
+
+At the right interface, where $\ddx T(X) = 0$, these equations become
+
+\begin{subequations}
+    \begin{equation}
+        \Delta x_i r\overline{T}_i - k_b  \left[   - \frac{\hat{T}_i}{\Delta x_i}+ \frac{\hat{T}_{i-1}}{\Delta x_{i-1}} \right] + \dot{m}c_p \left[ \overline{T}_i + \hat{T}_i - \overline{T}_{i-1} - \hat{T}_{i-1} \right] = \Delta x_i \overline{Q}_i
+    \end{equation}
+    \begin{equation}
+        \frac{1}{6} r\hat{T}_i - k_b \left[\frac{\hat{T}_{i}}{\Delta x_{i}} -  \frac{\hat{T}_{i-1}}{\Delta x_{i-1}} - \frac{4}{\Delta x_i} \hat{T}_i \right] + \dot{m}c_p \left[ \overline{T}_i + \hat{T}_i + \overline{T}_{i-1} + \hat{T}_{i-1} - 2 \overline{T}_i \right] = \frac{1}{6} \hat{Q}_i, \quad i=N_x.
+    \end{equation}
+\end{subequations}
+
+\section{List of Symbols}
+
+\begin{description}[labelindent=1cm, labelwidth=1.2cm, before={\renewcommand\makelabel[1]{##1 $=$}}]
+    \item[$j$] time index
+    \item[$m$] angular index for method of discrete ordinates
+    \item[$k$] delayed neutron precursor group
+    \item[$g$] neutron energy group  
+    \item[$n, s, l, r$] iterative index: outermost, \dots, innermost
+    \item[$i$] spatial cell index\
+    \item[$u$] reaction index for cross sections
+\end{description}
+
+
+TODO physics constants, etc
+
+
+
+
+% \begin{equation}
+    
+% \end{equation}
+% TODO LD advection-diffusion equation
+
+
 
 \end{appendices}
-
-
-
-
-
-
-
-
-
-
 \end{document}
