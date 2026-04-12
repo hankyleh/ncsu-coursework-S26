@@ -1,4 +1,4 @@
-\documentclass{proposal}
+ \documentclass{proposal}
 
 \title{NE511 Computational Project Notes}
 \author{Kyle Hansen}
@@ -20,6 +20,10 @@
 \newcommand{\p}{\ensuremath{^\prime}}
 \newcommand{\rarr}{\ensuremath{\rightarrow}}
 \newcommand{\vareps}{\ensuremath {\varepsilon}}
+\newcommand{\vb}{\ensuremath{\mathbf{v}}}
+\newcommand{\tb}{\ensuremath{\mathbf{t}}}
+\newcommand{\Cb}{\ensuremath{\mathbf{C}}}
+\newcommand{\keff}{\ensuremath{k_{\text{eff}}}}
 
 \usepackage{cancel}
 \usepackage{cleveref}
@@ -464,7 +468,7 @@ The iterative algorithm for FPI-QD is shown in and the algorithm for MNP is show
 \end{algorithm}
 
 
-\begin{algorithm}[h]\caption{Multilevel Nonlinear Projective Method}\label{alg:mnp}
+\begin{algorithm}[h]\caption{Multilevel Nonlinear Projective Method}\label{alg:mnp}\small
     \Input{$\psi_{g,m}^{(0)}, T^{(0)}, C_{k}^{(0)}$}
     $j = 0$\;
     \While{$t^{j} \leq t^{end}$}{
@@ -478,7 +482,7 @@ The iterative algorithm for FPI-QD is shown in and the algorithm for MNP is show
             $n \gets n+1$\;
             \If{$n > 1$}{
                 ${\sigma}^{j, (n-1)}_{u, g} = \sigma_{u, g}\left(T^{j, (n-1)}, f^{j, (n-1)} \right); \hat{\sigma}_{t, g}^{j, (n-1)} = \sigma_{t, g}^{j, (n-1)} + \frac{1}{v_g \Delta t_j}$\;
-                \For(comment){$g = 1,\dots, N_g$}{
+                \For{$g = 1,\dots, N_g$}{
                     $\psi_g^{j, (n)} \gets$ high-order transport equation using $\phi_g^{j, (n-1)}$\;
                 }
                 $\overline{E}_g^{j, (n)}, E_g^{b; j, (n)}, C_g^{\pm; j, (n)}, G_g^{j, (n)} \gets$ Closure equations using $\psi_g^{j, (n)}$\;
@@ -489,7 +493,9 @@ The iterative algorithm for FPI-QD is shown in and the algorithm for MNP is show
             \While{$\norm{1 - \phi^{j, (n, s)}/\phi^{j, (n, s-1)}}_\infty > \vareps_{\phi, s}$ or $\norm{1 - T^{j, (n, s)}/T^{j, (n, s-1)}}_\infty> \vareps_{T, s}$}{
                 $s \gets s + 1$\;
                 $\sigma^{j, (n, s-1)}_{u, g} = \sigma_{u, g}\left(T^{j, (n, s-1)}, f^{j, (n, s-1)} \right)$\;
-                $\phi_g^{j, (n, s)}, J_g^{j, (n, s)} \gets$ MLOQD Equations using $\sigma^{j, (n, s-1)}_{u, g}, \overline{E}_g^{j, (n)}, E_g^{b; j, (n)}, C_g^{\pm; j, (n)}, G_g^{j, (n)}$\;
+                \For{$g = 1,\dots, N_g$}{
+                    $\phi_g^{j, (n, s)}, J_g^{j, (n, s)} \gets$ MLOQD Equations using $\sigma^{j, (n, s-1)}_{u, g}, \overline{E}_g^{j, (n)}, E_g^{b; j, (n)}, C_g^{\pm; j, (n)}, G_g^{j, (n)}$\;
+                }
                 Calculate Grey coefficients\;
                 $l = 0$\;
                 $\phi^{j, (n, s, 0)} \gets \sum_g \phi_g^{j, (n, s)}$\;
@@ -515,6 +521,225 @@ The iterative algorithm for FPI-QD is shown in and the algorithm for MNP is show
 \subsection{Method details}
 
 \subsection{Iterative Algorithm}
+
+\section{Reactor Calculation Algorithms}
+
+\subsection{Criticality calculation}
+
+Two types of criticality calculation can be performed, one with fixed temperature/cross sections (for calculating $\keff$ at a single time step during a transient), or one with a power normalization (for criticality search, etc). The first is performed by solving a steady-state problem, redefining the fission source as 
+
+\begin{equation}\label{eq:keff-fission-source}
+    q_{f, g}(x) = \chi_{g}^{tot}(x) \frac{1}{2}\sum_{g\p = 1}^{N_g} \frac{1}{\keff}\nu \sigma_{f, g\p}(x)\phi_{g\p}(x)
+\end{equation}
+
+where the fission emission spectrum is
+
+\begin{equation}\label{eq:keff-chi}
+    \chi_{g}^{tot}(x) = (1 -\beta)\chi_{g} + \sum_{k=1}^{6}\beta_{k, g}\chi_{g, k}^d.
+\end{equation}
+
+Given fixed cross sections, the transport equation alone (without TH or precursor balance) is iterated to find $\keff$ which satisfies the steady-state prbolem. For the second type of criticality calculation, \cref{eq:keff-fission-source,eq:keff-chi} are solved, coupled to TH and temperature-dependent cross sections, with an additional equation for power normalization,
+
+\begin{equation}\label{eq:power-normalization}
+    P = \int\limits_0^{X}dx\, W_f \sum_{g=1}^{N_g} \sigma_{f, g}(x)\phi_{g}(x)
+\end{equation}
+
+again using $\chi^{tot}$, without considering the precursor balance equations. Here $P$ is a known power in Watts (e.g. nameplate power, shutdown power).
+
+The first type of calculation (fixed cross-section) is performed in the typical way. The power-normalized type of calculation modifies the outer $(n)$ iteration of whichever solution method is used. Before evaluating cross sections, $\keff$ is updated, then the scalar flux solution is scaled to satisfy \cref{eq:power-normalization}. The eigenvalue update is
+
+\begin{equation}
+    \keff^{(n)} = \frac{\int\limits_0^{X}dx\, \sum_{g=1}^{N_g} \sigma_{f, g}^{(n)}(x)\phi_{g}^{(n)}(x)}{\int\limits_0^{X}dx\, \sum_{g=1}^{N_g} \sigma_{f, g}^{(n-1)}(x)\phi_{g}^{(n-1)}(x)}.
+\end{equation}
+
+Note that if $W_f$ is space-independent, the power normalization and $\keff$ update can be grouped into the same step.
+
+\subsection{Criticality search}
+
+A criticality search is used to find the value of some parameter $y$ that satisfies
+\begin{equation}
+    \keff(y, P) - \keff^{target}= 0.
+\end{equation}
+
+The parameter $y$ could represent poison concentration, control rod position, inlet temperature, etc. The search is performed using a root-finding algorithm (bisection, Newton's method, etc) combined with power-normalized criticality calculations.
+
+
+
+\section{Benchmark Problems}
+
+\subsection{PWR Control Rod Ejection~\cite{larsen1981danish}}
+
+Two-group problem with six delayed neutron groups; 
+
+The active height of the core is 250 cm, with 5 regions defined in \Cref{tab:zones} and constants defined in \cref{tab:xs}.
+
+The self-scattering and fission cross sections are independent of temperature, with absorption cross section governed by the equations
+
+\begin{gather}
+    \sigma_{a, 1} = \sigma_{a, 1}^0 + 2.7\times 10^{-5}(T - 878\text{ K} )\\
+    \sigma_{s, 1\rarr2} = \sigma_{s, 1\rarr2}^0\left(1 - \frac{2.7 \times 10^{-5}}{\sigma^0_{s, 1\rarr 2}}(T - 878\text{ K}) \right).
+\end{gather}
+
+A reflector is added on the top and bottom (to replace the albedo boundary conditions given in~\cite{larsen1981danish}).
+
+Two versions of the transient are simulated. First, as described in~\cite{larsen1981danish}, 
+
+\begin{enumerate}
+    \item  Begin : steady-state conditions, bottom of rod $x_r$ cm from top of core
+    \item $t=0$ Rod begins ejection at constant velocity
+    \item $t=0.05$ Rod stops travel, bottom of rod 0 cm from top of core
+    \item $t=1.5$ Scram rod begins travel from 0.0 cm, at 40 cm/s
+    \item $t= 7.75$ Scram rod stops travel, fully inserted into core
+    \item End : continue simulation until $t=15$.
+\end{enumerate}
+
+In the second scenario, where the scram rod does not drop, only the first three steps are considered, and simulation continues for 15 seconds.
+
+\begin{table}
+    \centering
+    \caption{Zone Layout and materials}\label{tab:zones}
+    \begin{tabular}{c|c|c|c|c|c|c|c}
+        \hline
+        Location &Core Bottom & && & & & Core top\\
+        Material ID & R&M1 & M2 & M3 & M2 & M1 & R\\
+        Zone height &50 cm&50 cm & 50 cm & 50 cm &  50 cm & 50 cm & 50 cm \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\begin{table}
+    \centering
+    \caption{Unrodded material cross sections [cm$^{-1}$]}\label{tab:xs}
+    \begin{tabular}{c|c|c}
+        M1  & & \\
+        Group & 1 & 2\\
+        \hline\hline
+        $\sigma_a^0$             &  0.07582& 0.01043 \\
+        $\nu\sigma_f$            & 0.11120 &0.004695\\
+        $\sigma_{g\rarr g}$     & 0.24015 &0.91424 \\
+        $\sigma_{g \rarr g+1}^0$ & 0.01536 & --\\
+        \hline
+    \end{tabular}
+
+    \begin{tabular}{c|c|c}
+        M2 & & \\
+        Group & 1 & 2\\
+        \hline\hline
+        $\sigma_a^0$ & 0.07681 &0.01045 \\
+        $\nu\sigma_f$ & 0.11130 & 0.004595\\
+        $\sigma_{g\rarr g}$ & 0.23964 & 0.91701\\
+        $\sigma_{g \rarr g+1}^0$ & 0.01521& --\\
+    \hline
+    \end{tabular}
+
+    \begin{tabular}{c|c|c}
+        M3 & & \\
+        Group & 1 & 2\\
+        \hline\hline
+        $\sigma_a^0$ & 0.07691 & 0.01054\\
+        $\nu\sigma_f$ & 0.11140 & 0.004494\\
+        $\sigma_{g\rarr g}$ & 0.23946& 0.91726\\
+        $\sigma_{g \rarr g+1}^0$ & 0.01520& --
+    \end{tabular}
+\end{table}
+
+
+\begin{table}
+    \centering
+    \caption{Graphite reflector cross sections [cm $^{-1}$]}\label{tab:test1-graphite}
+    \begin{tabular}{c|c|c}
+        Group &1 & 2\\
+        \hline\hline
+        $\sigma_{a, g}$        & 0.0007 & 0.0003 \\
+        $\sigma_{s, g\rarr g}$ & 0.29&0.40 \\
+        $\sigma_{s, 1\rarr 2}$ & 0.0003 & --\\
+        \hline
+    \end{tabular}
+\end{table}
+
+\begin{table}
+    \centering
+    \caption{Energy Production and Deposition}\label{tab:test1-energy}
+    \begin{tabular}{r|l}
+        Thermal power & $1.531 \times 10^{-3}\text{W cm}^{-2}$\\
+        Energy deposition per fission & $330 \times 10^{-13}\text{ J}$\\
+        $v_1$ & $2.0\times 10^9 \text{ cm s}^{-1}$\\
+        $v_2$ & $2.2\times 10^5 \text{ cm s}^{-1}$
+    \end{tabular}
+\end{table}
+
+\begin{table}
+    \centering
+    \caption{Delayed Neutron data}\label{tab:test1-delayed-neutrons}
+    \begin{tabular}{c|c|c}
+        $k$ & decay constant $\lambda_k$ [s$^{-1}$] & $\beta_k$\\
+        \hline\hline
+        1  &  0.0124  & 0.000215\\
+        2  &  0.0305  & 0.001424\\
+        3  &  0.1110  & 0.001274\\
+        4  &  0.3010  & 0.002568\\
+        5  &  1.1300  & 0.000748\\
+        6  &  3.0000  & 0.000273\\
+        \hline
+        total &       & 0.006502
+    \end{tabular}
+\end{table}
+
+\begin{table}
+    \centering
+    \caption{Control Rod Cross section}\label{tab:test1-xs}
+    \begin{tabular}{c|c|c}
+        Group & 1 & 2\\
+        $\sigma_{a, g}$ & $0.006769 f$ & $0.02583 f$ 
+    \end{tabular}
+\end{table}
+
+\begin{table}
+    \centering
+    \caption{Thermal-hydraulic parameters}\label{tab:test1-th}
+    \begin{tabular}{r|l}
+        $k_b$ & 1.5 W cm$^{-1}$ K$^{-}$\\
+        $\dot{m}$ & 0.2382 kg s$^{-1}$ cm$^{-2}$\\
+        $T_{in}$ & 505 K \\
+        $c_p$ & 4670 J kg$^{-1}$ K$^{-1}$ \\
+    \end{tabular}
+\end{table}
+
+
+\section{Tests}
+
+\subsection{Pure Absorber Transport}
+
+\subsection{Pure Diffusion TH}
+
+\subsection{Advection with Local Removal TH}
+
+The equation for pure advection with general (space-dependent) coefficients is
+
+\begin{subequations}
+    \begin{equation}
+        rT(x) + \dot{m}c_p \ddx T(x) = Q, \quad x\in[0, X]
+    \end{equation}
+    \begin{equation}
+        T(0) = T^{in}
+    \end{equation}
+\end{subequations}
+
+or
+
+\begin{equation}
+    T(x) + \frac{\dot{m}c_p}{r}\ddx T(x) = \frac{Q(x)}{r}.
+\end{equation}
+
+Using an integrating factor, the analytical solution is finally
+
+\begin{equation}
+    T(x) = T^{in}\exp\left[-\int_0^x \frac{r(x\p)}{\dot{m}c_p}dx\p \right] + \int_0^x \frac{Q(x^{\prime\prime})}{\dot{m}c_p}\exp \left[-\int_0^x \frac{r(x\p)}{\dot{m}c_p}dx\p\right] dx^{\prime\prime}.
+\end{equation}
+
+
+
+
 
 
 
@@ -582,10 +807,10 @@ the interior-cell equations are finally
 
 \begin{subequations}
     \begin{equation}
-        \mu\left[ \psi_{g, R, i}^b - \psi_{g, L, i}^b \right] + \frac{1}{2}\mu \left(\psi_{g, L, i} + \psi_{g, R, i} \right) + \hat{\sigma}_{t, g}\frac{1}{6}\Delta x_i (2 \psi_{g, L, i} + \psi_{g, R, i}) = \frac{1}{6}\Delta x_i (2 q_{g, L, i} + q_{g, R, i})
+        \mu\left[  - \psi_{g, L, i}^b \right] + \frac{1}{2}\mu \left(\psi_{g, L, i} + \psi_{g, R, i} \right) + \hat{\sigma}_{t, g}\frac{1}{6}\Delta x_i (2 \psi_{g, L, i} + \psi_{g, R, i}) = \frac{1}{6}\Delta x_i (2 q_{g, L, i} + q_{g, R, i})
     \end{equation}
     \begin{equation}
-        \mu\left[ \psi_{g, R, i}^b - \psi_{g, L, i}^b \right] - \frac{1}{2}\mu \left(\psi_{g, L, i} + \psi_{g, R, i} \right) + \hat{\sigma}_{t, g}\frac{1}{6}\Delta x_i ( \psi_{g, L, i} + 2\psi_{g, R, i}) = \frac{1}{6}\Delta x_i ( q_{g, L, i} + 2 q_{g, R, i})
+        \mu\left[ \psi_{g, R, i}^b -  \right] - \frac{1}{2}\mu \left(\psi_{g, L, i} + \psi_{g, R, i} \right) + \hat{\sigma}_{t, g}\frac{1}{6}\Delta x_i ( \psi_{g, L, i} + 2\psi_{g, R, i}) = \frac{1}{6}\Delta x_i ( q_{g, L, i} + 2 q_{g, R, i})
     \end{equation}
 \end{subequations}
 
@@ -593,7 +818,7 @@ for $i=2, \dots, N_x -1$, where $\mu$ dependence of $\psi$ and $q$ have been sur
 
 \begin{subequations}
     \begin{equation}
-        \mu\left[ \psi_{g, R, i}^b  \right] + \frac{1}{2}\mu \left(\psi_{g, L, i} + \psi_{g, R, i} \right) + \hat{\sigma}_{t, g}\frac{1}{6}\Delta x_i (2 \psi_{g, L, i} + \psi_{g, R, i}) = \frac{1}{6}\Delta x_i (2 q_{g, L, i} + q_{g, R, i})+ \mu \psi_g^+
+         \frac{1}{2}\mu \left(\psi_{g, L, i} + \psi_{g, R, i} \right) + \hat{\sigma}_{t, g}\frac{1}{6}\Delta x_i (2 \psi_{g, L, i} + \psi_{g, R, i}) = \frac{1}{6}\Delta x_i (2 q_{g, L, i} + q_{g, R, i})+ \mu \psi_g^+
     \end{equation}
     \begin{multline}
         \mu\left[ \psi_{g, R, i}^b  \right] - \frac{1}{2}\mu \left(\psi_{g, L, i} + \psi_{g, R, i} \right) + \hat{\sigma}_{t, g}\frac{1}{6}\Delta x_i ( \psi_{g, L, i} + 2\psi_{g, R, i}) = \frac{1}{6}\Delta x_i ( q_{g, L, i} + 2 q_{g, R, i}) + \mu \psi_g^+\\
@@ -608,7 +833,7 @@ and for the right face with $\mu<0$,
         \mu\left[  - \psi_{g, L, i}^b \right] + \frac{1}{2}\mu \left(\psi_{g, L, i} + \psi_{g, R, i} \right) + \hat{\sigma}_{t, g}\frac{1}{6}\Delta x_i (2 \psi_{g, L, i} + \psi_{g, R, i}) = \frac{1}{6}\Delta x_i (2 q_{g, L, i} + q_{g, R, i}) - \mu \psi_g^-
     \end{equation}
     \begin{multline}
-        \mu\left[  - \psi_{g, L, i}^b \right] - \frac{1}{2}\mu \left(\psi_{g, L, i} + \psi_{g, R, i} \right) + \hat{\sigma}_{t, g}\frac{1}{6}\Delta x_i ( \psi_{g, L, i} + 2\psi_{g, R, i}) = \frac{1}{6}\Delta x_i ( q_{g, L, i} + 2 q_{g, R, i}) - \mu \psi_g^-\\
+         - \frac{1}{2}\mu \left(\psi_{g, L, i} + \psi_{g, R, i} \right) + \hat{\sigma}_{t, g}\frac{1}{6}\Delta x_i ( \psi_{g, L, i} + 2\psi_{g, R, i}) = \frac{1}{6}\Delta x_i ( q_{g, L, i} + 2 q_{g, R, i}) - \mu \psi_g^-\\
         i=N_x, \mu < 0
     \end{multline}
 \end{subequations}
@@ -799,7 +1024,7 @@ The advection-diffusion equation in 1 dimension is
     \left[ r - \ddx k_b \ddx + \dot{m}c_p \ddx \right]T^{(j+1)}(x) = Q(x)
 \end{equation}
 
-where $r$ is the local removal term from the backward Euler temporal discretization. For this model, all coefficients will be spatially constant. For this problem the boundary conditions 
+where $r$ is the local removal term from the backward Euler temporal discretization. For this model, $k_b$ and $\dot{m}c_p$ will be spatiall constant within each cell, $Q(x)$ will be piecewise linear, $r$ will be constant everywhere, and the first derivative of $k_b$ will be ignored. For this problem the boundary conditions 
 
 \begin{equation}
     T(0) = T^{in}, \qquad \left.\frac{d T}{dx}\right|_{x=X} = 0
@@ -834,7 +1059,7 @@ where
     \int_{\kappa_i} {b}^z_i(x)dx = \Delta x_i\\
     \int_{\kappa_i}{b}^f_i(x) dx = 0\\
     \int_{\kappa_i}({b}^z_i(x))^2 dx = \Delta x_i\\
-    \int_{\kappa_i}({b}^f_i(x))^2 dx = \frac{1}{6}\\
+    \int_{\kappa_i}({b}^f_i(x))^2 dx = \frac{1}{3}\Delta x_i\\
     \int_{\kappa_i}{b}^z_i(x){b}^f_i(x) dx =0
 \end{gather}
 
@@ -843,71 +1068,227 @@ where
 Here $\overline{T}_i$ represents the average value of $T$ in $\kappa_i$ and $\hat{T}_i$ is defined such that the corner values are $\overline{T} \pm \hat{T}$. The advection-diffusion equation is multiplied by each basis function and integrated over the cell,
 
 \begin{equation}
-    r\int_{\kappa_i}T(x)b^d(x)dx - k_b\int_{\kappa_i}\frac{\partial^2 T}{\partial x^2}b^d(x) dx  + \dot{m}c_p\int_{\kappa_i} \frac{\partial T}{\partial x}b^d(x) dx = \int_{\kappa_i}Q(x)b^d(x)dx, d=z,f
+    r_i \int_{\kappa_i}T(x)b^d(x)dx - \int_{\kappa_i} \ddx k_{b, i} \frac{\partial T}{\partial x}b^d(x)dx + (\dot{m}c_p)_i \int_{\kappa_i} \frac{\partial T}{\partial x}b^d(x)dx = \int_{\kappa_i} Q(x)b^d(x)dx
 \end{equation}
 
-then integration by parts is used on the derivative terms,
-
+Integration by parts is applied to move the derivative terms onto the basis functions,
 \begin{multline}
-    r\int_{\kappa_i}T(x)b^d(x)dx - k_b \left[\left. b^d(x) \frac{\partial T}{\partial x} \right|_{x_{i-1/2}}^{x_{i+1/2}} - \int_{\kappa_i}\frac{\partial T}{\partial x}\frac{d b^d}{dx}dx \right] \\
-    + \dot{m}c_p \left[ \left. T(x)b^d(x)\vphantom{\frac{}{}}\right|_{x_{i-1/2}}^{x_{i+1/2}} - \int_{\kappa_i} T(x) \frac{d b^d(x)}{dx}dx\right] = \int_{\kappa_i}Q(x)b^d(x) dx, \quad d = z,f
+    r_i \int_{\kappa_i}T(x)b_i^d(x)dx - k_{i}\left[\left.b_i^d(x)\ddx T(x) \right|_{x_{i-1/2}}^{x_{i+1/2}} - \int_{\kappa_i}\ddx T(x) \cdot \ddx b_i^d(x)dx  \right] \\
+    + (\dot{m}c_p)_i \left[\left. T(x)b_i^d(x) \right|_{x_{i-1/2}}^{x_{i+1/2}} - \int_{\kappa_i}T(x)\ddx b_i^d(x) dx \right] = \int_{\kappa_i} Q(x)b^d(x)dx
 \end{multline}
 
-Then $T$ inside each integral is expanded in terms of the basis functions,
+once more integration by parts is applied to the diffusion term,
+
+\begin{multline}
+    r_i \int_{\kappa_i}T(x)b_i^d(x)dx - k_{i}\left[\left.b_i^d(x)\ddx T(x) \right|_{x_{i-1/2}}^{x_{i+1/2}} - \left. T(x) \ddx b_i^d(x) \right|_{x_{i-1/2}}^{x_{i+1/2}}  \right] \\
+    + (\dot{m}c_p)_i \left[\left. T(x)b_i^d(x) \right|_{x_{i-1/2}}^{x_{i+1/2}} - \int_{\kappa_i}T(x)\ddx b_i^d(x) dx \right] = \int_{\kappa_i} Q(x)b^d(x)dx.
+\end{multline}
+
+For the diffusion term the interface condition is applied,
+
+\begin{subequations}
+    \begin{align}
+        \frac{d T}{dx}\Bigg|_{x_{i-1/2}} &= \frac{\hat{T}_i}{\Delta x_i} + \frac{\hat{T}_{i-1}}{\Delta x_{i-1}}\\
+        \frac{d T}{dx}\Bigg|_{x_{i+1/2}} &= \frac{\hat{T}_i}{\Delta x_i} + \frac{\hat{T}_{i+1}}{\Delta x_{i+1}}
+    \end{align}
+\end{subequations}
+
+Then this is evaluated with $d=z, f$,
 
 \begin{subequations}
     \begin{equation}
-        \Delta x_i r\overline{T}_i - k_b \left[\left.  \frac{\partial T}{\partial x} \right|_{x_{i-1/2}}^{x_{i+1/2}} \right] + \dot{m}c_p \left[ \left. T(x)\vphantom{\frac{}{}}\right|_{x_{i-1/2}}^{x_{i+1/2}} \right] = \Delta x_i \overline{Q}_i
+        r_i\overline{T}_i \Delta x_i + k_i\left(\frac{\hat{T}_{i-1}}{\Delta x_{i-1}} - \frac{\hat{T}_{i+1}}{\Delta x_{i+1}} \right) + (\dot{m}c_p)_i T(x)\Bigg|_{x_{i-1/2}}^{x_{i+1/2}} = \Delta x_i \overline{Q}_i
     \end{equation}
-    \begin{equation}
-        \frac{1}{6} r\hat{T}_i - k_b \left[\left. b^f(x) \frac{\partial T}{\partial x} \right|_{x_{i-1/2}}^{x_{i+1/2}} - \frac{4}{\Delta x_i} \hat{T}_i \right] + \dot{m}c_p \left[ \left. T(x)b^f(x)\vphantom{\frac{}{}}\right|_{x_{i-1/2}}^{x_{i+1/2}} - 2 \overline{T}_i \right] = \frac{1}{6} \hat{Q}_i
-    \end{equation}
+    \begin{multline}
+        \frac{1}{3}r_i\hat{T}_i \Delta x_i - k_i \left[ \frac{\hat{T}_{i+1}}{\Delta x_{i+1}} + 2 \frac{\hat{T}_{i}}{\Delta x_{i}} + \frac{\hat{T}_{i-1}}{\Delta x_{i-1}} - \frac{2}{\Delta x_i}T(x) \Bigg|_{x_{i-1/2}}^{x_{i+1/2}}\right] \\
+        + (\dot{m}c_p)_i \left[T(x_{i+1/2}) + T(x_{i-1/2}) - 2\overline{T}_i \right] = \frac{1}{3}\hat{Q}_i\Delta x_i
+    \end{multline}
 \end{subequations}
 
-Assuming $\dot{m} > 0$ (fluid flow in the $+x$ direction), the temperatures and derivatives at the interfaces are taken to be
+The interface condition for $T$ depends on the physics of the problem.
+
+\subsection{Advective Interface Condition}
+
+In a strongly advective problem, the interface condition is
 
 \begin{equation}
-    T(x_{i+1/2}) = \overline{T}_i + \hat{T}_i, \qquad T(x_{i-1/2}) = \overline{T}_{i-1} + \hat{T}_{i-1}
+    T(x_{i+1/2}) = \overline{T}_i + \hat{T}_i, \qquad T(x_{i-1/2}) = \overline{T}_{i-1} + \hat{T}_{i-1},
 \end{equation}
 
+and thus the interior equations become
+
+\begin{subequations}
+    \begin{equation}
+        r_i\overline{T}_i \Delta x_i + k_i\left(\frac{\hat{T}_{i-1}}{\Delta x_{i-1}} - \frac{\hat{T}_{i+1}}{\Delta x_{i+1}} \right) + (\dot{m}c_p)_i \left( \overline{T}_i + \hat{T}_i - \overline{T}_{i-1} - \hat{T}_{i-1} \right) = \Delta x_i \overline{Q}_i
+    \end{equation}
+    \begin{multline}
+        \frac{1}{3}r_i\hat{T}_i \Delta x_i + k_i \left[  -\frac{\hat{T}_{i+1}}{\Delta x_{i+1}} - \frac{\hat{T}_{i-1}}{\Delta x_{i-1}} + \frac{2}{\Delta x_i}\left( \overline{T}_i - \overline{T}_{i-1} -\hat{T}_{i-1} \right)  \right] \\
+        + (\dot{m}c_p)_i \left[-\overline{T}_i + \hat{T}_i + \overline{T}_{i-1} + \hat{T}_{i-1} \right] = \frac{1}{3}\hat{Q}_i\Delta x_i
+    \end{multline}
+\end{subequations}
+
+
+With a fixed-temperature boundary condition at the left face, this is
+
+\begin{subequations}
+    \begin{equation}
+        r_i\overline{T}_i \Delta x_i + k_i\left(\frac{\hat{T}_{i-1}}{\Delta x_{i-1}} - \frac{\hat{T}_{i+1}}{\Delta x_{i+1}} \right) + (\dot{m}c_p)_i \left( \overline{T}_i + \hat{T}_i  \right) = \Delta x_i \overline{Q}_i + (\dot{m}c_p)_i  T_{in}^L
+    \end{equation}
+    \begin{multline}
+        \frac{1}{3}r_i\hat{T}_i \Delta x_i + k_i \left[  -\frac{\hat{T}_{i+1}}{\Delta x_{i+1}}  - 2 \frac{\hat{T}_i}{\Delta x_i}- \frac{\hat{T}_{i-1}}{\Delta x_{i-1}} + \frac{2}{\Delta x_i}\left( \overline{T}_i + \hat{T}_i\right)  \right] \\
+        + (\dot{m}c_p)_i \left[\hat{T}_i - \overline{T}_i \right] = \frac{1}{3}\hat{Q}_i\Delta x_i + \left(2 \frac{k_i}{\Delta x_i}- (\dot{m}c_p)_i \right)T_{in}^L 
+    \end{multline}
+\end{subequations}
+
+
+and, setting the first derivative to zero on the right face,
+
+\begin{subequations}
+    \begin{equation}
+        r_i\overline{T}_i \Delta x_i + k_i\left(-\frac{\hat{T}_{i-1}}{\Delta x_{i-1}} - \frac{\hat{T}_{i}}{\Delta x_{i}} \right) + (\dot{m}c_p)_i \left( \overline{T}_i + \hat{T}_i - \overline{T}_{i-1} - \hat{T}_{i-1} \right) = \Delta x_i \overline{Q}_i
+    \end{equation}
+    \begin{multline}
+        \frac{1}{3}r_i\hat{T}_i \Delta x_i + k_i \left[  \frac{\hat{T}_{i}}{\Delta x_{i}} - \frac{\hat{T}_{i-1}}{\Delta x_{i-1}} + \frac{2}{\Delta x_i}\left( \overline{T}_i - \overline{T}_{i-1} -\hat{T}_{i-1} \right)  \right] \\
+        + (\dot{m}c_p)_i \left[-\overline{T}_i + \hat{T}_i + \overline{T}_{i-1} + \hat{T}_{i-1} \right] = \frac{1}{3}\hat{Q}_i\Delta x_i
+    \end{multline}
+\end{subequations}
+
+\subsection{Diffusive Interface Condition}
+
+In a strongly (or purely) diffusive problem, the interface condition is
+
+\begin{equation}
+    T(x_{i+1/2}) = \frac{1}{2}\left(\overline{T}_i + \hat{T}_i + \overline{T}_{i+1} - \hat{T}_{i+1} \right), \qquad T(x_{i-1/2}) = \frac{1}{2}\left(\overline{T}_i - \hat{T}_i + \overline{T}_{i-1} + \hat{T}_{i-1} \right),
+\end{equation}
+
+and thus the interior equations are 
+
+\begin{subequations}
+    \begin{equation}
+        r_i \overline{T}_i \Delta x_i + k_i \left( \frac{\hat{T}_{i-1}}{\Delta x_{i-1}} - \frac{\hat{T}_{i+1}}{\Delta x_{i+1}} \right) + \frac{(\dot{m}c_p)_i}{2}\left( 2 \hat{T}_i + \overline{T}_{i+1} - \hat{T}_{i+1} - \overline{T}_{i-1} - \hat{T}_{i-1} \right) = \Delta x_i \overline{Q}_i
+    \end{equation}
+    \begin{multline}
+        \frac{1}{3}r_i \hat{T}_i \Delta x_i + k_i \left[-\frac{\hat{T}_{i+1}}{\Delta x_{i+1}} - 2\frac{\hat{T}_{i}}{\Delta x_{i}} - \frac{\hat{T}_{i-1}}{\Delta x_{i-1}} + \frac{1}{\Delta x_i} \left( 2\hat{T}_i + \overline{T}_{i+1} - \hat{T}_{i+1} - \overline{T}_{i-1} - \hat{T}_{i-1} \right) \right]\\
+        + (\dot{m}c_p)_i\left[\frac{1}{2}\left( \overline{T}_{i+1} - \hat{T}_{i+1} + \overline{T}_{i-1} + \hat{T}_{i+1}  \right) - \overline{T}_i \right] = \frac{1}{3}\hat{Q}_i \Delta x_i.
+    \end{multline}
+\end{subequations}
+
+The fixed-temperature left-side boundary equation is 
+
+\begin{subequations}
+    \begin{equation}
+        r_i \overline{T}_i \Delta x_i + k_i \left( -\frac{\hat{T}_{i+1}}{\Delta x_{i+1}} + \frac{\hat{T}_{i}}{\Delta x_{i}} \right) + \frac{(\dot{m}c_p)_i}{2}\left( \overline{T}_i + \hat{T}_i + \overline{T}_{i+1} - \hat{T}_{i+1} \right) = \Delta x_i \overline{Q}_i + (\dot{m}c_p)_i T_{in}^L
+    \end{equation}
+    \begin{multline}
+        \frac{1}{3}r_i \hat{T}_i \Delta x_i + k_i \left[-\frac{\hat{T}_{i+1}}{\Delta x_{i+1}} - 3\frac{\hat{T}_{i}}{\Delta x_{i}} + \frac{1}{\Delta x_i} \left(\overline{T}_i + \hat{T}_i + \overline{T}_{i+1} -\hat{T}_{i+1} \right) \right]\\
+        + (\dot{m}c_p)_i\left[-\frac{3}{2} \overline{T}_i + \frac{1}{2}\left( \hat{T}_i + \overline{T}_{i+1} - \hat{T}_{i+1} \right)\right] = \frac{1}{3}\hat{Q}_i \Delta x_i + \left(2\frac{k_i}{\Delta x_i} - (\dot{m}c_p)_i\right) T_{in}^L
+    \end{multline}
+\end{subequations}
+
+amd the fixed-temperature right-side boundary equation is
+
+\begin{subequations}
+    \begin{equation}
+        r_i \overline{T}_i \Delta x_i + k_i \left(-\frac{\hat{T}_i}{\Delta x_i} + \frac{\hat{T}_{i-1}}{\Delta x_{i-1}} \right) + \frac{(\dot{m}c_p)_i}{2}\left( -\overline{T}_i + \hat{T}_i - \overline{T}_{i-1} - \hat{T}_{i-1}\right) = \Delta x_i \overline{Q}_i + (\dot{m}c_p)_i T_{in}^R
+    \end{equation}
+    \begin{multline}
+        \frac{1}{3}r_i \hat{T}_i \Delta x_i + k_i \left[ -3\frac{\hat{T}_i}{\Delta x_i} - \frac{\hat{T}_{i-1}}{\Delta x_{i-1}} + \frac{1}{\Delta x_i} \left( -\overline{T}_i + \hat{T}_i - \overline{T}_{i-1} - \hat{T}_{i-1} \right) \right]\\
+        + (\dot{m}c_p)_i\left[\frac{1}{2}\left( -\overline{T}_i + \hat{T}_i +\overline{T}_{i-1} + \hat{T}_{i-1}  \right)  \right] = \frac{1}{3}\hat{Q}_i \Delta x_i - \left( 2\frac{k_i}{\Delta x_i} + (\dot{m}c_p)_i \right)T_{in}^R
+    \end{multline}
+\end{subequations}
+
+The insulated left-side boundary equation is 
+
+\begin{subequations}
+    \begin{equation}
+        r_i \overline{T}_i \Delta x_i + k_i \left(-\frac{\hat{T}_i}{\Delta x_i} - \frac{\hat{T}_{i+1}}{\Delta x_{i+1}} \right) + \frac{(\dot{m}c_p)_i}{2}\left( -\overline{T}_i + 3\hat{T}_i + \overline{T}_{i+1} - \hat{T}_{i+1} \right) = \Delta x_i \overline{Q}_i
+    \end{equation}
+    \begin{multline}
+        \frac{1}{3}r_i \hat{T}_i \Delta x_i + k_i \left[-\frac{\hat{T}_i}{\Delta x_i} - \frac{\hat{T}_{i+1}}{\Delta x_{i+1}} + \frac{1}{\Delta x_i} \left( - \overline{T}_i + 3\hat{T}_i + \overline{T}_{i+1} - \hat{T}_{i+1} \right) \right]\\
+        + \frac{(\dot{m}c_p)_i}{2}\left[-\overline{T}_i -\hat{T}_i + \overline{T}_{i+1} - \hat{T}_{i+1}\right] = \frac{1}{3}\hat{Q}_i \Delta x_i.
+    \end{multline}
+\end{subequations}
+
+and the insulated right-side boundary equation is
+
+\begin{subequations}
+    \begin{equation}
+        r_i \overline{T}_i \Delta x_i + k_i \left(\frac{\hat{T}_i}{\Delta x_i} + \frac{\hat{T}_{i-1}}{\Delta x_{i-1}} \right) + \frac{(\dot{m}c_p)_i}{2}\left( \overline{T}_i + 3\hat{T}_i - \overline{T}_{i-1} - \hat{T}_{i-1} \right) = \Delta x_i \overline{Q}_i
+    \end{equation}
+    \begin{multline}
+        \frac{1}{3}r_i \hat{T}_i \Delta x_i + k_i \left[-\frac{\hat{T}_i}{\Delta x_i} - \frac{\hat{T}_{i-1}}{\Delta x_{i-1}} + \frac{1}{\Delta x_i}\left(\overline{T}_i + 3\hat{T}_i - \overline{T}_{i-1} - \hat{T}_{i-1} \right) \right]\\
+        + \frac{(\dot{m}c_p)_i}{2}\left[-\overline{T}_i + \hat{T}_i + \overline{T}_{i-1} + \hat{T}_{i-1} \right] = \frac{1}{3}\hat{Q}_i \Delta x_i.
+    \end{multline}
+\end{subequations}
+
+
+
+
+\section{Computational Units}
+
+The original system of time-dependent equtions for the multiphysics problem is
+
+\begin{subequations}\label{eq:system-before-comp}
+    \begin{multline}
+        \frac{1}{v_g} \ddt \psi + \mu \ddx \psi + \sigma_t \psi = \frac{1}{2}\int\limits_0^\infty dE\p \sigma_s(E\p \rarr E)\int\limits_{-1}^{1}d\mu\p \psi(\mu\p) \\
+        + \frac{\chi(E)}{2}\int\limits_0^\infty dE\p \nu\sigma_f(E\p)\int\limits_{-1}^{1}d\mu\p \psi(\mu\p) + \frac{1}{2}\sum_k \chi_k^d(E) \lambda_k C_k + q
+    \end{multline}
+    \begin{equation}
+        \phi(x, E) = \int\limits_{-1}^{1}d\mu \psi(x, \mu, E)
+    \end{equation}
+    \begin{equation}
+        \left[\ddt - \ddx k_b \ddx + \dot{m}c_p \ddx \right] T(x) = W_f\int\limits_0^\infty d E\, \nu\sigma_f(E)\phi(x, E)
+    \end{equation}
+    \begin{equation}
+        \sigma_{u}(x, E) = \sigma_u(E, T(x), f(x))
+    \end{equation}
+    \begin{equation}
+        \ddt C_k = -\lambda_k C_k + \int\limits_0^\infty \beta_k(E)\nu\sigma_f(x, E)\phi(x, E)
+    \end{equation}
+\end{subequations}
+
+Let the computational variables be
+
 \begin{gather}
-    \left.\frac{\partial T}{\partial x}\right|_{x_{i+1/2}} =  \left(\frac{\hat{T}_{i+1}}{\Delta x_{i+1}} - \frac{\hat{T}_i}{\Delta x_i} \right)\\
-    \left.\frac{\partial T}{\partial x}\right|_{x_{i-1/2}} =  \left(\frac{\hat{T}_{i}}{\Delta x_{i}} - \frac{\hat{T}_{i-1}}{\Delta x_{i-1}} \right)
+    v_g = c_v \vb_g\\
+    \psi = c_\psi \Psi_g\\
+    \phi = c_\psi \Phi_g\\
+    C_k = c_\psi \Cb_k
 \end{gather}
 
-
-Then the equation for each of the interior cells becomes
+Then \cref{eq:system-before-comp} becomes
 
 \begin{subequations}
+    \begin{multline}
+        \frac{1}{c_v \vb_g} \ddt \Psi + \mu \ddx \Psi + \sigma_t \Psi = \frac{1}{2}\int\limits_0^\infty dE\p \sigma_s(E\p \rarr E)\int\limits_{-1}^{1}d\mu\p \Psi(\mu\p) \\
+        + \frac{\chi(E)}{2}\int\limits_0^\infty dE\p \nu\sigma_f(E\p)\int\limits_{-1}^{1}d\mu\p \Psi(\mu\p) + \frac{1}{2}\sum_k \chi_k^d(E) \lambda_k \Cb_k + \frac{q}{c_\psi}
+    \end{multline}
+
     \begin{equation}
-        \Delta x_i r\overline{T}_i - k_b  \left[ \frac{\hat{T}_{i+1}}{\Delta x_{i+1}}  - 2\frac{\hat{T}_i}{\Delta x_i}+ \frac{\hat{T}_{i-1}}{\Delta x_{i-1}} \right] + \dot{m}c_p \left[ \overline{T}_i + \hat{T}_i - \overline{T}_{i-1} - \hat{T}_{i-1} \right] = \Delta x_i \overline{Q}_i
+        \Phi(x, E) = \int\limits_{-1}^{1}d\mu \Phi(x, \mu, E)
+    \end{equation}
+
+    \begin{equation}
+        \left[\ddt - \ddx k_b \ddx + \dot{m}c_p \ddx \right] T(x) = \frac{W_f}{c_\psi}\int\limits_0^\infty d E\, \nu\sigma_f(E)\Phi(x, E)
+    \end{equation}
+
+    \begin{equation}
+        \sigma_{u}(x, E) = \sigma_u(E, T(x), f(x))
     \end{equation}
     \begin{equation}
-        \frac{1}{6} r\hat{T}_i - k_b \left[\frac{\hat{T}_{i+1}}{\Delta x_{i+1}} +  \frac{\hat{T}_{i-1}}{\Delta x_{i-1}} - \frac{4}{\Delta x_i} \hat{T}_i \right] + \dot{m}c_p \left[ \overline{T}_i + \hat{T}_i + \overline{T}_{i-1} + \hat{T}_{i-1} - 2 \overline{T}_i \right] = \frac{1}{6} \hat{Q}_i
+        \ddt \Cb_k = -\lambda_k \Cb_k + \int\limits_0^\infty \beta_k(E)\nu\sigma_f(x, E)\Phi(x, E)
     \end{equation}
 \end{subequations}
 
-At the left interface, where $T(0) = T^{in}$, we also estimate $\ddx T(0)$ to be $\frac{2}{\Delta x}\hat{T}_1$, and these equations become
+where
 
-\begin{subequations}
-    \begin{equation}
-        \Delta x_i r\overline{T}_i - k_b  \left[ \frac{\hat{T}_{i+1}}{\Delta x_{i+1}} - 3\frac{\hat{T}_{i}}{\Delta x_{i}} \right] + \dot{m}c_p \left[ \overline{T}_i + \hat{T}_i  \right] = \Delta x_i \overline{Q}_i + \dot{m}c_p T^{in}
-    \end{equation}
-    \begin{equation}
-        \frac{1}{6} r\hat{T}_i - k_b \left[\frac{\hat{T}_{i+1}}{\Delta x_{i+1}} + \frac{\hat{T}_i}{\Delta x_i} - \frac{4}{\Delta x_i} \hat{T}_i \right] + \dot{m}c_p \left[ \overline{T}_i + \hat{T}_i  - 2 \overline{T}_i \right] = \frac{1}{6} \hat{Q}_i - \dot{m}c_p T^{in}, \quad i=1
-    \end{equation}
-\end{subequations}
+\begin{equation}
+    f(x) = \frac{1}{c_\psi}\int\limits_0^\infty dE \sigma_f(E)\Phi(E)
+\end{equation}
 
-At the right interface, where $\ddx T(X) = 0$, these equations become
 
-\begin{subequations}
-    \begin{equation}
-        \Delta x_i r\overline{T}_i - k_b  \left[   - \frac{\hat{T}_i}{\Delta x_i}+ \frac{\hat{T}_{i-1}}{\Delta x_{i-1}} \right] + \dot{m}c_p \left[ \overline{T}_i + \hat{T}_i - \overline{T}_{i-1} - \hat{T}_{i-1} \right] = \Delta x_i \overline{Q}_i
-    \end{equation}
-    \begin{equation}
-        \frac{1}{6} r\hat{T}_i - k_b \left[\frac{\hat{T}_{i}}{\Delta x_{i}} -  \frac{\hat{T}_{i-1}}{\Delta x_{i-1}} - \frac{4}{\Delta x_i} \hat{T}_i \right] + \dot{m}c_p \left[ \overline{T}_i + \hat{T}_i + \overline{T}_{i-1} + \hat{T}_{i-1} - 2 \overline{T}_i \right] = \frac{1}{6} \hat{Q}_i, \quad i=N_x.
-    \end{equation}
-\end{subequations}
+
+
 
 \section{List of Symbols}
 
